@@ -50,7 +50,6 @@ public class MainActivityFragment extends Fragment {
         loadMovieData();
         GridView gridView = (GridView) getActivity().findViewById(R.id.gridview_moviepost);
         gridView.setAdapter(mAdaptor);
-        Log.v(LOG_TAG, "" + movies.size());
     }
 
     private void loadMovieData() {
@@ -65,11 +64,13 @@ public class MainActivityFragment extends Fragment {
                 public void onResponse(JSONObject response) {
                     try {
                         JSONArray movieData = response.getJSONArray("results");
-                        for (int i = 0; i < movieData.length(); i++) {
-                            movies.add(new Movie(movieData.getJSONObject(i)));
-                            Log.v(LOG_TAG, movies.get(i).originalTitle);
+                        if (movieData.length() > 0) {
+                            movies.clear();
+                            for (int i = 0; i < movieData.length(); i++) {
+                                movies.add(new Movie(movieData.getJSONObject(i)));
+                            }
+                            mAdaptor.notifyDataSetChanged();
                         }
-                        mAdaptor.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -127,12 +128,16 @@ public class MainActivityFragment extends Fragment {
             NetworkImageView imageView;
             if (convertView == null) {
                 imageView = (NetworkImageView) mInflater.inflate(R.layout.grid_item_movieposter, null);
+                imageView.setDefaultImageResId(R.drawable.noposter);
+                imageView.setErrorImageResId(R.drawable.noposter);
                 imageView.setAdjustViewBounds(true);
             } else {
                 imageView = (NetworkImageView) convertView;
             }
-            String imageUrl = "http://image.tmdb.org/t/p/w185" + movies.get(position).posterPath;
-            imageView.setImageUrl(imageUrl, VolleySingleton.getInstance(mContext).getImageLoader());
+            if (!movies.get(position).posterPath.equals("null")) {
+                String imageUrl = "http://image.tmdb.org/t/p/w185" + movies.get(position).posterPath;
+                imageView.setImageUrl(imageUrl, VolleySingleton.getInstance(mContext).getImageLoader());
+            }
             return imageView;
         }
     }
