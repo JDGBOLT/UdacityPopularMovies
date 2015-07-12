@@ -187,7 +187,7 @@ public class MainFragment extends Fragment {
 
             // Do we need to create the view first? If so, create it using the xml, and set default posters and sizing tags
             if (convertView == null) {
-                imageView = (NetworkImageView) mInflater.inflate(R.layout.grid_item_movieposter, parent);
+                imageView = (NetworkImageView) mInflater.inflate(R.layout.grid_item_movieposter, null);
                 imageView.setDefaultImageResId(R.drawable.noposter);
                 imageView.setErrorImageResId(R.drawable.noposter);
                 imageView.setAdjustViewBounds(true);
