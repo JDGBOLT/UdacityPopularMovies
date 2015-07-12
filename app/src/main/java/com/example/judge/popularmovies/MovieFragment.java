@@ -45,9 +45,11 @@ public class MovieFragment extends Fragment {
         NetworkImageView image = (NetworkImageView) layout.findViewById(R.id.movie_poster);
         image.setErrorImageResId(R.drawable.noposter);
         image.setDefaultImageResId(R.drawable.noposter);
-        image.setImageUrl(getString(R.string.api_poster_base_path) +
-                        intent.getStringExtra(getString(R.string.api_movie_poster_path)),
-                VolleySingleton.getInstance(getActivity()).getImageLoader());
+        if (!intent.getStringExtra(getString(R.string.api_movie_poster_path)).equals("null")) {
+            image.setImageUrl(getString(R.string.api_poster_base_path) +
+                            intent.getStringExtra(getString(R.string.api_movie_poster_path)),
+                    VolleySingleton.getInstance(getActivity()).getImageLoader());
+        }
     }
 
     /**
