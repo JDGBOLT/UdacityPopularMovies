@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2015 Joshua Gwinn (jdgbolt@gmail.com)
+ */
+
 package com.example.judge.popularmovies;
 
 import android.content.Intent;
@@ -6,6 +10,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
+/**
+ * The main activity of the application, which holds the MainFragment, which contains the grid of
+ * thumbnails of movie posters which can be clicked to get more detailed movie information.
+ */
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,6 +31,9 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Overrided in order to provide a settings menu which contains the sorting information *
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
