@@ -1,6 +1,7 @@
 package com.example.judge.popularmovies;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -8,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 
@@ -27,12 +29,12 @@ import java.util.ArrayList;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MainActivityFragment extends Fragment {
+public class MainFragment extends Fragment {
 
-    private final String LOG_TAG = MainActivityFragment.class.getSimpleName();
-    //   private JSONArray movies;
-    public ArrayList<Movie> movies;
+    private final String LOG_TAG = MainFragment.class.getSimpleName();
     public MoviePosterAdaptor mAdaptor;
+    //   private JSONArray movies;
+    private ArrayList<Movie> movies;
     private RequestQueue mQueue;
 
     @Override
@@ -50,6 +52,14 @@ public class MainActivityFragment extends Fragment {
         loadMovieData();
         GridView gridView = (GridView) getActivity().findViewById(R.id.gridview_moviepost);
         gridView.setAdapter(mAdaptor);
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Movie movie = movies.get(position);
+                Intent movieIntent = new Intent(getActivity(), MovieActivity.class).putExtra(Intent.EXTRA_TEXT, position);
+                startActivity(movieIntent);
+            }
+        });
     }
 
     private void loadMovieData() {
