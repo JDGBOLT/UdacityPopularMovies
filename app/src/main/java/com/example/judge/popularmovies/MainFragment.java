@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,7 +32,6 @@ public class MainFragment extends Fragment {
 
     private final String LOG_TAG = MainFragment.class.getSimpleName();
     public MoviePosterAdaptor mAdaptor;
-    //   private JSONArray movies;
     private ArrayList<Movie> movies;
     private RequestQueue mQueue;
 
@@ -55,8 +53,17 @@ public class MainFragment extends Fragment {
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Movie movie = movies.get(position);
-                Intent movieIntent = new Intent(getActivity(), MovieActivity.class).putExtra(Intent.EXTRA_TEXT, position);
+                Intent movieIntent = new Intent(getActivity(), MovieActivity.class);
+                movieIntent.putExtra(getString(R.string.api_movie_original_title),
+                        movies.get(position).originalTitle);
+                movieIntent.putExtra(getString(R.string.api_movie_poster_path),
+                        movies.get(position).posterPath);
+                movieIntent.putExtra(getString(R.string.api_movie_release_date),
+                        movies.get(position).releaseDate);
+                movieIntent.putExtra(getString(R.string.api_movie_rating),
+                        movies.get(position).rating);
+                movieIntent.putExtra(getString(R.string.api_movie_overview),
+                        movies.get(position).overView);
                 startActivity(movieIntent);
             }
         });
@@ -64,16 +71,14 @@ public class MainFragment extends Fragment {
 
     private void loadMovieData() {
         if (movies.size() == 0) {
-            final String MOVIE_BASEURL = "http://api.themoviedb.org/3/discover/movie?api_key=apikey&sort_by=";
             String sort = PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(
                     getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
-            String url = MOVIE_BASEURL + sort + ".desc";
-            Log.v(LOG_TAG, "URL is " + url);
+            String url = getString(R.string.api_json_base_path) + sort + ".desc";
             JsonObjectRequest request = new JsonObjectRequest(url, new Response.Listener<JSONObject>() {
                 @Override
                 public void onResponse(JSONObject response) {
                     try {
-                        JSONArray movieData = response.getJSONArray("results");
+                        JSONArray movieData = response.getJSONArray(getString(R.string.api_movie_array));
                         if (movieData.length() > 0) {
                             movies.clear();
                             for (int i = 0; i < movieData.length(); i++) {
@@ -97,13 +102,15 @@ public class MainFragment extends Fragment {
 
     public class Movie {
         public final String originalTitle, overView, releaseDate, posterPath, title;
+        public final double rating;
 
         public Movie(JSONObject movie) throws JSONException {
-            originalTitle = movie.getString("original_title");
-            overView = movie.getString("overview");
-            releaseDate = movie.getString("release_date");
-            posterPath = movie.getString("poster_path");
-            title = movie.getString("title");
+            originalTitle = movie.getString(getString(R.string.api_movie_original_title));
+            overView = movie.getString(getString(R.string.api_movie_overview));
+            releaseDate = movie.getString(getString(R.string.api_movie_release_date));
+            posterPath = movie.getString(getString(R.string.api_movie_poster_path));
+            title = movie.getString(getString(R.string.api_movie_title));
+            rating = movie.getDouble(getString(R.string.api_movie_rating));
         }
     }
 
@@ -145,7 +152,7 @@ public class MainFragment extends Fragment {
                 imageView = (NetworkImageView) convertView;
             }
             if (!movies.get(position).posterPath.equals("null")) {
-                String imageUrl = "http://image.tmdb.org/t/p/w185" + movies.get(position).posterPath;
+                String imageUrl = getString(R.string.api_poster_base_path) + movies.get(position).posterPath;
                 imageView.setImageUrl(imageUrl, VolleySingleton.getInstance(mContext).getImageLoader());
             }
             return imageView;
