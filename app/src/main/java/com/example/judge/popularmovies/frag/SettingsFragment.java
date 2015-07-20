@@ -2,13 +2,15 @@
  * Copyright (C) 2015 Joshua Gwinn (jdgbolt@gmail.com)
  */
 
-package com.example.judge.popularmovies;
+package com.example.judge.popularmovies.frag;
 
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+
+import com.example.judge.popularmovies.R;
 
 
 /**
@@ -39,14 +41,15 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         // Trigger the listener immediately with the preference's
         // current value.
         onPreferenceChange(preference, PreferenceManager
-                        .getDefaultSharedPreferences(preference.getContext())
-                        .getString(preference.getKey(), ""));
+                .getDefaultSharedPreferences(preference.getContext())
+                .getString(preference.getKey(), ""));
     }
 
     /**
      * Function to update the preference summary in order to display changes to list preferences
+     *
      * @param preference Preference to be changed
-     * @param value Value of preference to change summary to
+     * @param value      Value of preference to change summary to
      * @return returns true after successful change
      */
     @Override

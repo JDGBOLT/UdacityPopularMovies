@@ -2,13 +2,15 @@
  * Copyright (C) 2015 Joshua Gwinn (jdgbolt@gmail.com)
  */
 
-package com.example.judge.popularmovies;
+package com.example.judge.popularmovies.act;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import com.example.judge.popularmovies.R;
 
 /**
  * The main activity of the application, which holds the MainFragment, which contains the grid of

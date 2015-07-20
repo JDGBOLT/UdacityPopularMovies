@@ -11,13 +11,6 @@
     <string name="pref_sort_rating">vote_average</string>
     <string name="pref_sort_label_rating">Highest Rating</string>
     <string name="title_activity_movie">Movie Details</string>
-    <string name="api_movie_original_title">original_title</string>
-    <string name="api_movie_overview">overview</string>
-    <string name="api_movie_release_date">release_date</string>
-    <string name="api_movie_poster_path">poster_path</string>
-    <string name="api_movie_title">title</string>
-    <string name="api_movie_rating">vote_average</string>
-    <string name="api_movie_array">results</string>
-    <string name="api_json_base_path">http://api.themoviedb.org/3/discover/movie?api_key=apikey&amp;sort_by=</string>
     <string name="api_poster_base_path">http://image.tmdb.org/t/p/w185</string>
+    <string name="api_movie_api">apikey</string>
 </resources>
