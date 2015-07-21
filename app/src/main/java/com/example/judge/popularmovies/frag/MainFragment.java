@@ -9,13 +9,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.BaseAdapter;
-import android.widget.GridView;
 import android.widget.ImageView;
 
 import com.example.judge.popularmovies.R;
@@ -42,7 +41,9 @@ import retrofit.client.Response;
 public class MainFragment extends Fragment {
 
     private final String LOG_TAG = MainFragment.class.getSimpleName();
-    private MoviePosterAdaptor mAdaptor;
+    private RecyclerView.Adapter mAdaptor;
+    private RecyclerView mRecyclerView;
+    private RecyclerView.LayoutManager mLayoutManager;
     private ArrayList<MovieResults.Movie> movies;
 
     @Override
@@ -75,16 +76,11 @@ public class MainFragment extends Fragment {
         }
         mAdaptor = new MoviePosterAdaptor(getActivity());
         loadMovieData();
-        GridView gridView = (GridView) getActivity().findViewById(R.id.gridview_moviepost);
-        gridView.setAdapter(mAdaptor);
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent movieIntent = new Intent(getActivity(), MovieActivity.class);
-                movieIntent.putExtra("movie", Parcels.wrap(movies.get(position)));
-                startActivity(movieIntent);
-            }
-        });
+
+        mLayoutManager = new GridLayoutManager(getActivity(), 2);
+        mRecyclerView = (RecyclerView) getActivity().findViewById(R.id.recyclerview_moviepost);
+        mRecyclerView.setAdapter(mAdaptor);
+        mRecyclerView.setLayoutManager(mLayoutManager);
     }
 
     /**
@@ -117,7 +113,7 @@ public class MainFragment extends Fragment {
      * dynamically cached images for use in the view
      */
 
-    private class MoviePosterAdaptor extends BaseAdapter {
+    private class MoviePosterAdaptor extends RecyclerView.Adapter<MoviePosterAdaptor.ViewHolder> {
 
         private Context mContext;
         private LayoutInflater mInflater = null;
@@ -128,13 +124,21 @@ public class MainFragment extends Fragment {
         }
 
         @Override
-        public int getCount() {
+        public int getItemCount() {
             return movies.size();
         }
 
         @Override
-        public Object getItem(int position) {
-            return null;
+        public MoviePosterAdaptor.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.grid_item_movieposter, parent, false);
+            return new ViewHolder(v);
+        }
+
+        @Override
+        public void onBindViewHolder(MoviePosterAdaptor.ViewHolder holder, int position) {
+            holder.mImageView.setAdjustViewBounds(true);
+            String imageUrl = getString(R.string.api_poster_base_path) + movies.get(position).posterPath;
+            Picasso.with(mContext).load(imageUrl).placeholder(R.drawable.noposter).error(R.drawable.noposter).into(holder.mImageView);
         }
 
         @Override
@@ -142,32 +146,27 @@ public class MainFragment extends Fragment {
             return position;
         }
 
-        /**
-         * Actually creates the ImageView, which is filled with picasso the image to be used
-         * to provide a dynamically cached on-demand image view.
-         *
-         * @param position    The position within the grid to grab which movie to pull poster for
-         * @param convertView Contains an already existing view, if present
-         * @param parent      The parent view that will contain the view
-         * @return Returns the NetworkImageView
-         */
+        public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+            public ImageView mImageView;
 
-            ImageView imageView;
-
-            // Do we need to create the view first? If so, create it using the xml, and set default posters and sizing tags
-            if (convertView == null) {
-                imageView = (ImageView) mInflater.inflate(R.layout.grid_item_movieposter, null);
-                imageView.setAdjustViewBounds(true);
-            } else {
-                imageView = (ImageView) convertView;
+            public ViewHolder(View v) {
+                super(v);
+                v.setOnClickListener(this);
+                mImageView = (ImageView) v;
             }
-            String imageUrl = getString(R.string.api_poster_base_path) + movies.get(position).posterPath;
 
-            Picasso.with(mContext).load(imageUrl).placeholder(R.drawable.noposter).error(R.drawable.noposter).into(imageView);
-            return imageView;
+            /**
+             * Called when a view has been clicked.
+             *
+             * @param v The view that was clicked.
+             */
+            @Override
+            public void onClick(View v) {
+                Intent movieIntent = new Intent(getActivity(), MovieActivity.class);
+                movieIntent.putExtra("movie", Parcels.wrap(movies.get(getAdapterPosition())));
+                startActivity(movieIntent);
+            }
         }
     }
 }
