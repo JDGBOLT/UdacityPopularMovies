@@ -46,8 +46,17 @@ public class MainFragment extends Fragment {
     private ArrayList<MovieResults.Movie> movies;
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelable("movies", Parcels.wrap(movies));
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            movies = Parcels.unwrap(savedInstanceState.getParcelable("movies"));
+        }
         return inflater.inflate(R.layout.fragment_main, container, false);
     }
 
@@ -61,7 +70,9 @@ public class MainFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        movies = new ArrayList<>();
+        if (movies == null) {
+            movies = new ArrayList<>();
+        }
         mAdaptor = new MoviePosterAdaptor(getActivity());
         loadMovieData();
         GridView gridView = (GridView) getActivity().findViewById(R.id.gridview_moviepost);
@@ -83,24 +94,22 @@ public class MainFragment extends Fragment {
      */
 
     private void loadMovieData() {
-        if (movies.size() == 0) {
-            String sort = PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(
-                    getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
-            TmdbApiInterface apiInterface = TmdbSingleton.getRestAdapter(getActivity()).create(TmdbApiInterface.class);
-            apiInterface.getMovieResults(sort + ".desc", getString(R.string.api_movie_api), new Callback<MovieResults>() {
+        String sort = PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(
+                getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
+        TmdbApiInterface apiInterface = TmdbSingleton.getRestAdapter(getActivity()).create(TmdbApiInterface.class);
+        apiInterface.getMovieResults(sort + ".desc", getString(R.string.api_movie_api), new Callback<MovieResults>() {
 
-                @Override
-                public void success(MovieResults movieResults, Response response) {
-                    movies = movieResults.results;
-                    mAdaptor.notifyDataSetChanged();
-                }
+            @Override
+            public void success(MovieResults movieResults, Response response) {
+                movies = movieResults.results;
+                mAdaptor.notifyDataSetChanged();
+            }
 
-                @Override
-                public void failure(RetrofitError error) {
-                    Log.e(LOG_TAG, "Could not get json: " + error.getLocalizedMessage());
-                }
-            });
-        }
+            @Override
+            public void failure(RetrofitError error) {
+                Log.e(LOG_TAG, "Could not get json: " + error.getLocalizedMessage());
+            }
+        });
     }
 
     /**
