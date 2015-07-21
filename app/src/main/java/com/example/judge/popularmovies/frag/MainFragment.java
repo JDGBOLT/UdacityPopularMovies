@@ -50,16 +50,28 @@ public class MainFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putParcelable("movies", Parcels.wrap(movies));
+        outState.putParcelable("layout", mLayoutManager.onSaveInstanceState());
         super.onSaveInstanceState(outState);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
+        mAdaptor = new MoviePosterAdaptor(getActivity());
+        mLayoutManager = new GridLayoutManager(getActivity(), 2);
+
+        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_moviepost);
+        mRecyclerView.setAdapter(mAdaptor);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+
         if (savedInstanceState != null) {
             movies = Parcels.unwrap(savedInstanceState.getParcelable("movies"));
+            mLayoutManager.onRestoreInstanceState(savedInstanceState.getParcelable("layout"));
         }
-        return inflater.inflate(R.layout.fragment_main, container, false);
+        return rootView;
     }
 
     /**
@@ -72,16 +84,7 @@ public class MainFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        if (movies == null) {
-            movies = new ArrayList<>();
-        }
-        mAdaptor = new MoviePosterAdaptor(getActivity());
         loadMovieData();
-
-        mLayoutManager = new GridLayoutManager(getActivity(), 2);
-        mRecyclerView = (RecyclerView) getActivity().findViewById(R.id.recyclerview_moviepost);
-        mRecyclerView.setAdapter(mAdaptor);
-        mRecyclerView.setLayoutManager(mLayoutManager);
     }
 
     /**
@@ -91,6 +94,11 @@ public class MainFragment extends Fragment {
      */
 
     private void loadMovieData() {
+
+        if (movies == null) {
+            movies = new ArrayList<>();
+        }
+
         String sort = PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(
                 getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
         TmdbApiInterface apiInterface = TmdbSingleton.getRestAdapter(getActivity()).create(TmdbApiInterface.class);

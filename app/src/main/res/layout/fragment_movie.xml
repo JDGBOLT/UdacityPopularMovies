@@ -5,21 +5,14 @@
     android:orientation="vertical"
     tools:context="com.example.judge.popularmovies.frag.MovieFragment">
 
-    <RelativeLayout
+    <TextView
+        android:id="@+id/movie_title"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="6"
-        android:background="@color/background_material_dark">
-
-        <TextView
-            android:id="@+id/movie_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
-            android:textAppearance="@style/Base.TextAppearance.AppCompat.Large.Inverse" />
-
-    </RelativeLayout>
+        android:background="@color/background_material_dark"
+        android:gravity="center"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Large.Inverse" />
 
     <ScrollView
         android:id="@+id/scrollView"
@@ -41,10 +34,11 @@
                     android:id="@+id/movie_poster"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_gravity="top"
+                    android:layout_gravity="center"
+                    android:layout_margin="8dp"
                     android:layout_weight="1"
-                    android:minHeight="270dp"
-                    android:paddingLeft="16dp" />
+                    android:adjustViewBounds="true"
+                    android:src="@drawable/noposter" />
 
                 <RelativeLayout
                     android:layout_width="match_parent"
