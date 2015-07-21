@@ -27,6 +27,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         // Load preferences from file
         addPreferencesFromResource(R.xml.preferences);
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_sort_key)));
+        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_column_landscape_key)));
+        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_column_portrait_key)));
     }
 
     /**

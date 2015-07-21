@@ -6,8 +6,10 @@ package com.example.judge.popularmovies.frag;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -60,18 +62,31 @@ public class MainFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
+        int numColumns = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(getActivity())
+                .getString(getString(R.string.pref_column_portrait_key), getString(R.string.pref_column_portrait_default)));
+
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            numColumns = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(getActivity())
+                    .getString(getString(R.string.pref_column_landscape_key), getString(R.string.pref_column_landscape_default)));
+        }
+
         mAdaptor = new MoviePosterAdaptor(getActivity());
-        mLayoutManager = new GridLayoutManager(getActivity(), 2);
+        mLayoutManager = new GridLayoutManager(getActivity(), numColumns);
 
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_moviepost);
         mRecyclerView.setAdapter(mAdaptor);
         mRecyclerView.setLayoutManager(mLayoutManager);
+        return rootView;
+    }
 
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+
+        super.onActivityCreated(savedInstanceState);
         if (savedInstanceState != null) {
             movies = Parcels.unwrap(savedInstanceState.getParcelable("movies"));
             mLayoutManager.onRestoreInstanceState(savedInstanceState.getParcelable("layout"));
         }
-        return rootView;
     }
 
     /**

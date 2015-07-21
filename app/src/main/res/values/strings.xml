@@ -13,4 +13,10 @@
     <string name="title_activity_movie">Movie Details</string>
     <string name="api_poster_base_path">http://image.tmdb.org/t/p/w185</string>
     <string name="api_movie_api">apikey</string>
+    <string name="pref_column_landscape_key">column_landscape</string>
+    <string name="pref_column_landscape_title">Number of Columns (Landscape)</string>
+    <string name="pref_column_landscape_default">3</string>
+    <string name="pref_column_portrait_key">column_portrait</string>
+    <string name="pref_column_portrait_title">Number of Columns (Portrait)</string>
+    <string name="pref_column_portrait_default">2</string>
 </resources>

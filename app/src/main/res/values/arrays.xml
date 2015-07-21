@@ -8,4 +8,48 @@
         <item>@string/pref_sort_popular</item>
         <item>@string/pref_sort_rating</item>
     </string-array>
+    <string-array name="pref_column_landscape_options">
+        <item>2 Columns</item>
+        <item>3 Columns</item>
+        <item>4 Columns</item>
+        <item>5 Columns</item>
+        <item>6 Columns</item>
+        <item>7 Columns</item>
+        <item>8 Columns</item>
+        <item>9 Columns</item>
+        <item>10 Columns</item>
+    </string-array>
+    <string-array name="pref_column_landscape_values">
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+    </string-array>
+    <string-array name="pref_column_portrait_options">
+        <item>2 Columns</item>
+        <item>3 Columns</item>
+        <item>4 Columns</item>
+        <item>5 Columns</item>
+        <item>6 Columns</item>
+        <item>7 Columns</item>
+        <item>8 Columns</item>
+        <item>9 Columns</item>
+        <item>10 Columns</item>
+    </string-array>
+    <string-array name="pref_column_portrait_values">
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+    </string-array>
 </resources>

@@ -2,10 +2,22 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 <PreferenceCategory android:title="General">
     <ListPreference
-        android:key="@string/pref_sort_key"
-        android:title="@string/pref_sort_title"
         android:defaultValue="@string/pref_sort_default"
         android:entries="@array/pref_sort_options"
-        android:entryValues="@array/pref_sort_values"/>
+        android:entryValues="@array/pref_sort_values"
+        android:key="@string/pref_sort_key"
+        android:title="@string/pref_sort_title" />
+    <ListPreference
+        android:defaultValue="@string/pref_column_landscape_default"
+        android:entries="@array/pref_column_landscape_options"
+        android:entryValues="@array/pref_column_landscape_values"
+        android:key="@string/pref_column_landscape_key"
+        android:title="@string/pref_column_landscape_title" />
+    <ListPreference
+        android:defaultValue="@string/pref_column_portrait_default"
+        android:entries="@array/pref_column_portrait_options"
+        android:entryValues="@array/pref_column_portrait_values"
+        android:key="@string/pref_column_portrait_key"
+        android:title="@string/pref_column_portrait_title" />
 </PreferenceCategory>
 </PreferenceScreen>
