@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.example.judge.popularmovies.R;
 import com.example.judge.popularmovies.act.MovieActivity;
@@ -116,11 +117,9 @@ public class MainFragment extends Fragment {
     private class MoviePosterAdaptor extends RecyclerView.Adapter<MoviePosterAdaptor.ViewHolder> {
 
         private Context mContext;
-        private LayoutInflater mInflater = null;
 
         public MoviePosterAdaptor(Context c) {
             mContext = c;
-            mInflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
 
         @Override
@@ -136,9 +135,9 @@ public class MainFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(MoviePosterAdaptor.ViewHolder holder, int position) {
-            holder.mImageView.setAdjustViewBounds(true);
             String imageUrl = getString(R.string.api_poster_base_path) + movies.get(position).posterPath;
             Picasso.with(mContext).load(imageUrl).placeholder(R.drawable.noposter).error(R.drawable.noposter).into(holder.mImageView);
+            holder.mTextView.setText(movies.get(position).originalTitle);
         }
 
         @Override
@@ -148,12 +147,14 @@ public class MainFragment extends Fragment {
 
         public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-            public ImageView mImageView;
+            private ImageView mImageView;
+            private TextView mTextView;
 
             public ViewHolder(View v) {
                 super(v);
                 v.setOnClickListener(this);
-                mImageView = (ImageView) v;
+                mImageView = (ImageView) v.findViewById(R.id.grid_item_moviepost_imageview);
+                mTextView = (TextView) v.findViewById(R.id.grid_item_moviepost_textview);
             }
 
             /**
