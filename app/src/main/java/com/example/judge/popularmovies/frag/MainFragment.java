@@ -127,7 +127,7 @@ public class MainFragment extends Fragment {
 
             @Override
             public void failure(RetrofitError error) {
-                Log.e(LOG_TAG, "Could not get json: " + error.getLocalizedMessage());
+                Log.e(LOG_TAG, "Could not get data from theMovieDB: " + error.getLocalizedMessage());
             }
         });
     }

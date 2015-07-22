@@ -16,6 +16,6 @@ public interface TmdbApiInterface {
     @GET("/movie/{id}/videos")
     void getVideos(@Path("id") int id, @Query("api_key") String key, Callback<VideoResults> callback);
 
-    @GET("movie/{id}/reviews")
+    @GET("/movie/{id}/reviews")
     void getReviews(@Path("id") int id, @Query("api_key") String key, Callback<ReviewResults> callback);
 }

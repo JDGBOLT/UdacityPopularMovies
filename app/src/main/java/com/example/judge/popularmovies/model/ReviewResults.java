@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public class ReviewResults {
     @Expose
-    ArrayList<Review> results;
+    public ArrayList<Review> results;
 
     @Parcel
     public static class Review {
