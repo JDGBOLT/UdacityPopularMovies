@@ -6,14 +6,30 @@
     android:orientation="vertical"
     tools:context="com.example.judge.popularmovies.frag.MovieFragment">
 
-    <TextView
-        android:id="@+id/movie_title"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="6"
-        android:background="@color/background_material_dark"
-        android:gravity="center"
-        android:textAppearance="@style/Base.TextAppearance.AppCompat.Large.Inverse" />
+        android:layout_weight="6">
+
+        <TextView
+            android:id="@+id/movie_title"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/background_material_dark"
+            android:gravity="center"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Large.Inverse" />
+
+        <CheckBox
+            android:id="@+id/button_favorite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_margin="16dp"
+            android:button="@drawable/favorite_star" />
+
+    </RelativeLayout>
 
     <ScrollView
         android:id="@+id/scrollView"
