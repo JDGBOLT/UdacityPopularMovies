@@ -12,7 +12,6 @@
     <string name="pref_sort_label_rating">Highest Rating</string>
     <string name="title_activity_movie">Movie Details</string>
     <string name="api_poster_base_path">http://image.tmdb.org/t/p/w185</string>
-    <string name="api_movie_api">apikey</string>
     <string name="pref_column_landscape_key">column_landscape</string>
     <string name="pref_column_landscape_title">Number of Columns (Landscape)</string>
     <string name="pref_column_landscape_default">3</string>
