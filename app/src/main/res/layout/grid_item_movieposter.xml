@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="0dp">
-
-    <android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/grid_item_moviepost_cardview"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        card_view:cardElevation="8dp"
-        card_view:cardUseCompatPadding="true">
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/grid_item_moviepost_cardview"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    card_view:cardElevation="8dp">
 
         <RelativeLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="8dp">
 
@@ -30,4 +26,3 @@
                 android:layout_below="@id/grid_item_moviepost_imageview" />
         </RelativeLayout>
     </android.support.v7.widget.CardView>
-</LinearLayout>
