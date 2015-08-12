@@ -12,12 +12,11 @@
             android:layout_height="wrap_content"
             android:padding="8dp">
 
-            <ImageView
+            <com.android.volley.toolbox.NetworkImageView
                 android:id="@+id/grid_item_moviepost_imageview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:adjustViewBounds="true"
-                android:src="@drawable/noposter" />
+                android:adjustViewBounds="true" />
 
             <TextView
                 android:id="@+id/grid_item_moviepost_textview"

@@ -5,31 +5,25 @@
 package com.example.judge.popularmovies.frag;
 
 import android.content.Intent;
-import android.net.Uri;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.CardView;
-import android.util.Log;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.android.volley.toolbox.NetworkImageView;
 import com.example.judge.popularmovies.R;
-import com.example.judge.popularmovies.api.TmdbApiInterface;
-import com.example.judge.popularmovies.api.TmdbSingleton;
-import com.example.judge.popularmovies.model.MovieResults;
-import com.example.judge.popularmovies.model.ReviewResults;
-import com.example.judge.popularmovies.model.VideoResults;
-import com.squareup.picasso.Picasso;
-
-import org.parceler.Parcels;
-
-import retrofit.Callback;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
+import com.example.judge.popularmovies.api.TmdbApiHandler;
+import com.example.judge.popularmovies.api.VolleySingleton;
+import com.example.judge.popularmovies.data.MovieContract.MovieEntry;
+import com.example.judge.popularmovies.data.MovieContract.ReviewEntry;
+import com.example.judge.popularmovies.data.MovieContract.TrailerEntry;
 
 
 /**
@@ -37,140 +31,127 @@ import retrofit.client.Response;
  * movie poster, year of release, synopsis, average rating, and movie title.
  */
 
-public class MovieFragment extends Fragment {
+public class MovieFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    private final String LOG_TAG = MovieFragment.class.getSimpleName();
+    private static final int DETAIL_LOADER = 0;
+    private static final int REVIEW_LOADER = 1;
+    private static final int TRAILER_LOADER = 2;
+    private static final String[] DETAIL_COLUMNS = {
+            MovieEntry.ORIGINAL_TITLE.COLUMN,
+            MovieEntry.POSTER_PATH.COLUMN,
+            MovieEntry.RELEASE_DATE.COLUMN,
+            MovieEntry.OVERVIEW.COLUMN,
+            MovieEntry.RATING.COLUMN
+    };
+    private static final String[] REVIEW_COLUMNS = {
+            ReviewEntry.AUTHOR.COLUMN,
+            ReviewEntry.REVIEW.COLUMN
+    };
+    private static final String[] TRAILER_COLUMNS = {
+            TrailerEntry.NAME.COLUMN,
+            TrailerEntry.SITE.COLUMN,
+            TrailerEntry.KEY.COLUMN
+    };
+    private static final String LOG_TAG = MovieFragment.class.getSimpleName();
+    private int mMovieId;
     private LinearLayout mReviews, mTrailers;
     private LayoutInflater mInflater;
+    private View mLayout;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View layout = inflater.inflate(R.layout.fragment_movie, container, false);
+        mLayout = inflater.inflate(R.layout.fragment_movie, container, false);
         mInflater = inflater;
+        return mLayout;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+
         Intent intent = getActivity().getIntent();
-        MovieResults.Movie movie = Parcels.unwrap(intent.getParcelableExtra("movie"));
+        mMovieId = intent.getIntExtra(Intent.EXTRA_SUBJECT, 0);
+        TmdbApiHandler.sync(TmdbApiHandler.SYNC_REVIEW, Integer.toString(mMovieId), getActivity());
+        TmdbApiHandler.sync(TmdbApiHandler.SYNC_TRAILER, Integer.toString(mMovieId), getActivity());
 
-        addTrailers(layout, movie);
-        addReviews(layout, movie);
-        setPoster(layout, movie);
-        setViewText(layout, movie);
-
-        return layout;
+        getLoaderManager().initLoader(DETAIL_LOADER, null, this);
+        getLoaderManager().initLoader(REVIEW_LOADER, null, this);
+        getLoaderManager().initLoader(TRAILER_LOADER, null, this);
+        super.onActivityCreated(savedInstanceState);
     }
 
-    /**
-     * Function to set the movie poster image of the layout
-     *
-     * @param layout Layout to modify
-     * @param movie  Movie object in order to get the poster path
-     */
-    private void setPoster(View layout, MovieResults.Movie movie) {
-
-        ImageView image = (ImageView) layout.findViewById(R.id.movie_poster);
-        Picasso.with(getActivity()).load(getString(R.string.api_poster_base_path) + movie.posterPath)
-                .placeholder(R.drawable.noposter)
-                .error(R.drawable.noposter)
-                .into(image);
-    }
-
-    /**
-     * Function to set the textual information contained within the Movie detail view
-     *
-     * @param layout Layout to modify
-     * @param movie  Movie data in order to fill in the text fields
-     */
-    private void setViewText(View layout, MovieResults.Movie movie) {
-
-        ((TextView) layout.findViewById(R.id.movie_title)).setText(movie.originalTitle);
-        ((TextView) layout.findViewById(R.id.movie_year)).setText("Release Date: " + movie.releaseDate);
-        ((TextView) layout.findViewById(R.id.movie_synopsis)).setText("Overview: " + movie.overview);
-        ((TextView) layout.findViewById(R.id.movie_rating)).setText("Rating: " + movie.rating + "/10.0");
-    }
-
-    private void addTrailers(View layout, MovieResults.Movie movie) {
-
-        mTrailers = (LinearLayout) layout.findViewById(R.id.movie_trailers);
-        TmdbApiInterface apiInterface = TmdbSingleton.getRestAdapter(getActivity()).create(TmdbApiInterface.class);
-        apiInterface.getVideos(movie.id, getString(R.string.api_movie_api), new Callback<VideoResults>() {
-            @Override
-            public void success(VideoResults videoResults, Response response) {
-                fillTrailers(videoResults);
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        switch (id) {
+            case DETAIL_LOADER: {
+                return new CursorLoader(
+                        getActivity(),
+                        MovieEntry.CONTENT_URI,
+                        DETAIL_COLUMNS,
+                        MovieEntry.selectId(),
+                        new String[]{Integer.toString(mMovieId)},
+                        null);
             }
-
-            @Override
-            public void failure(RetrofitError error) {
-                Log.v(LOG_TAG, "Could not get trailers: " + error.getLocalizedMessage());
+            case REVIEW_LOADER: {
+                return new CursorLoader(
+                        getActivity(),
+                        ReviewEntry.CONTENT_URI,
+                        REVIEW_COLUMNS,
+                        ReviewEntry.selectId(),
+                        new String[]{Integer.toString(mMovieId)},
+                        null);
             }
-
-        });
+            case TRAILER_LOADER: {
+                return new CursorLoader(
+                        getActivity(),
+                        TrailerEntry.CONTENT_URI,
+                        TRAILER_COLUMNS,
+                        TrailerEntry.selectId(),
+                        new String[]{Integer.toString(mMovieId)},
+                        null);
+            }
+        }
+        return null;
     }
 
-    private void fillTrailers(VideoResults videoResults) {
-        int size = videoResults.results.size();
-        if (size > 0) {
-            ((TextView) mTrailers.findViewById(R.id.trailer_title)).setText("Trailers:");
-            mTrailers.setShowDividers(LinearLayout.SHOW_DIVIDER_BEGINNING);
-            for (int i = 0; i < size; i++) {
-                CardView item = (CardView) mInflater.inflate(R.layout.list_item_trailer, mTrailers, false);
-                ((TextView) item.findViewById(R.id.trailer_title)).setText(
-                        videoResults.results.get(i).name);
-
-                String url;
-                switch (videoResults.results.get(i).site) {
-                    case "YouTube": {
-                        url = "http://www.youtube.com/watch?v=" + videoResults.results.get(i).key;
-                        break;
-                    }
-                    default:
-                        url = videoResults.results.get(i).key;
-                }
-                final Uri uri = Uri.parse(url);
-
-                item.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                        if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
-                            startActivity(intent);
-                        }
-                    }
-                });
-
-                mTrailers.addView(item);
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        switch (loader.getId()) {
+            case DETAIL_LOADER: {
+                data.moveToFirst();
+                int titleColumn = data.getColumnIndex(MovieEntry.ORIGINAL_TITLE.COLUMN);
+                int dateColumn = data.getColumnIndex(MovieEntry.RELEASE_DATE.COLUMN);
+                int overviewColumn = data.getColumnIndex(MovieEntry.OVERVIEW.COLUMN);
+                int ratingColumn = data.getColumnIndex(MovieEntry.RATING.COLUMN);
+                int posterColumn = data.getColumnIndex(MovieEntry.POSTER_PATH.COLUMN);
+                String imageUrl = getString(R.string.api_poster_base_path) + data.getString(posterColumn);
+                ((TextView) mLayout.findViewById(R.id.movie_title)).setText(data.getString(titleColumn));
+                ((TextView) mLayout.findViewById(R.id.movie_year)).setText("Release Date: " + data.getString(dateColumn));
+                ((TextView) mLayout.findViewById(R.id.movie_synopsis)).setText("Overview: " + data.getString(overviewColumn));
+                ((TextView) mLayout.findViewById(R.id.movie_rating)).setText("Rating: " + data.getDouble(ratingColumn) + "/10.0");
+                ((NetworkImageView) mLayout.findViewById(R.id.movie_poster)).setImageUrl(imageUrl, VolleySingleton.getInstance(getActivity()).getImageLoader());
+            }
+            case REVIEW_LOADER: {
+                break;
+            }
+            case TRAILER_LOADER: {
+                break;
             }
         }
     }
 
-    private void addReviews(View layout, MovieResults.Movie movie) {
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
 
-        mReviews = (LinearLayout) layout.findViewById(R.id.movie_reviews);
-        TmdbApiInterface apiInterface = TmdbSingleton.getRestAdapter(getActivity()).create(TmdbApiInterface.class);
-        apiInterface.getReviews(movie.id, getString(R.string.api_movie_api), new Callback<ReviewResults>() {
-            @Override
-            public void success(ReviewResults reviewResults, Response response) {
-                fillReviews(reviewResults);
+        switch (loader.getId()) {
+            case DETAIL_LOADER: {
+                break;
             }
-
-            @Override
-            public void failure(RetrofitError error) {
-                Log.v(LOG_TAG, "Could not get reviews: " + error.getLocalizedMessage());
+            case REVIEW_LOADER: {
+                break;
             }
-        });
-    }
-
-    private void fillReviews(ReviewResults reviewResults) {
-        int size = reviewResults.results.size();
-        if (size > 0) {
-            ((TextView) mReviews.findViewById(R.id.review_title)).setText("Reviews:");
-            mReviews.setShowDividers(LinearLayout.SHOW_DIVIDER_BEGINNING);
-            for (int i = 0; i < size; i++) {
-                CardView item = (CardView) mInflater.inflate(R.layout.list_item_review, mReviews, false);
-                ((TextView) item.findViewById(R.id.author_textview)).setText(
-                        reviewResults.results.get(i).author);
-                ((TextView) item.findViewById(R.id.review_textview)).setText(
-                        reviewResults.results.get(i).content);
-                mReviews.addView(item);
+            case TRAILER_LOADER: {
+                break;
             }
         }
     }

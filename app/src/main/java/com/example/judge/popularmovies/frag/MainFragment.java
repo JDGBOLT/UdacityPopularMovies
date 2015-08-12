@@ -6,34 +6,30 @@ package com.example.judge.popularmovies.frag;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.android.volley.toolbox.NetworkImageView;
 import com.example.judge.popularmovies.R;
 import com.example.judge.popularmovies.act.MovieActivity;
-import com.example.judge.popularmovies.api.TmdbApiInterface;
-import com.example.judge.popularmovies.api.TmdbSingleton;
-import com.example.judge.popularmovies.model.MovieResults;
-import com.squareup.picasso.Picasso;
-
-import org.parceler.Parcels;
-
-import java.util.ArrayList;
-
-import retrofit.Callback;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
+import com.example.judge.popularmovies.api.TmdbApiHandler;
+import com.example.judge.popularmovies.api.VolleySingleton;
+import com.example.judge.popularmovies.data.MovieContract;
+import com.example.judge.popularmovies.data.MovieContract.MovieEntry;
 
 
 /**
@@ -41,18 +37,22 @@ import retrofit.client.Response;
  * then be touched on in order to provide more detailed movie information in a separate view.
  */
 
-public class MainFragment extends Fragment {
+public class MainFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    private static final int MOVIE_LOADER = 0;
     private final String LOG_TAG = MainFragment.class.getSimpleName();
-    private RecyclerView.Adapter mAdaptor;
+    private final String BUNDLE_LAYOUT_TAG = "layout";
+
+    private SharedPreferences mPref;
+
+    private String mSource = MovieEntry.SOURCE_POPULAR;
+    private MoviePosterAdaptor mAdaptor;
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
-    private ArrayList<MovieResults.Movie> movies;
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putParcelable("movies", Parcels.wrap(movies));
-        outState.putParcelable("layout", mLayoutManager.onSaveInstanceState());
+        outState.putParcelable(BUNDLE_LAYOUT_TAG, mLayoutManager.onSaveInstanceState());
         super.onSaveInstanceState(outState);
     }
 
@@ -62,12 +62,16 @@ public class MainFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        int numColumns = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(getActivity())
-                .getString(getString(R.string.pref_column_portrait_key), getString(R.string.pref_column_portrait_default)));
+        mPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
+        int numColumns = Integer.parseInt(mPref.getString(
+                getString(R.string.pref_column_portrait_key),
+                getString(R.string.pref_column_portrait_default)));
 
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            numColumns = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(getActivity())
-                    .getString(getString(R.string.pref_column_landscape_key), getString(R.string.pref_column_landscape_default)));
+            numColumns = Integer.parseInt(mPref.getString(
+                    getString(R.string.pref_column_landscape_key),
+                    getString(R.string.pref_column_landscape_default)));
         }
 
         mAdaptor = new MoviePosterAdaptor(getActivity());
@@ -82,10 +86,10 @@ public class MainFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
 
+        getLoaderManager().initLoader(MOVIE_LOADER, null, this);
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState != null) {
-            movies = Parcels.unwrap(savedInstanceState.getParcelable("movies"));
-            mLayoutManager.onRestoreInstanceState(savedInstanceState.getParcelable("layout"));
+            mLayoutManager.onRestoreInstanceState(savedInstanceState.getParcelable(BUNDLE_LAYOUT_TAG));
         }
     }
 
@@ -109,27 +113,31 @@ public class MainFragment extends Fragment {
      */
 
     private void loadMovieData() {
-
-        if (movies == null) {
-            movies = new ArrayList<>();
+        String oldSource = mSource;
+        mSource = mPref.getString(getString(R.string.pref_source_key), getString(R.string.pref_source_default));
+        TmdbApiHandler.sync(TmdbApiHandler.SYNC_MOVIE, mSource, getActivity());
+        if (!mSource.equals(oldSource)) {
+            getLoaderManager().restartLoader(MOVIE_LOADER, null, this);
         }
+    }
 
-        String sort = PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(
-                getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
-        TmdbApiInterface apiInterface = TmdbSingleton.getRestAdapter(getActivity()).create(TmdbApiInterface.class);
-        apiInterface.getMovieResults(sort + ".desc", getString(R.string.api_movie_api), new Callback<MovieResults>() {
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        String source = mPref.getString(getString(R.string.pref_source_key), getString(R.string.pref_source_default));
+        return new CursorLoader(getActivity(), MovieEntry.CONTENT_URI,
+                new String[]{MovieEntry.POSTER_PATH.COLUMN, MovieEntry.ORIGINAL_TITLE.COLUMN, MovieEntry.MOVIE_ID.COLUMN},
+                MovieEntry.selectSource(), new String[]{source}, null);
 
-            @Override
-            public void success(MovieResults movieResults, Response response) {
-                movies = movieResults.results;
-                mAdaptor.notifyDataSetChanged();
-            }
+    }
 
-            @Override
-            public void failure(RetrofitError error) {
-                Log.e(LOG_TAG, "Could not get data from theMovieDB: " + error.getLocalizedMessage());
-            }
-        });
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mAdaptor.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mAdaptor.swapCursor(null);
     }
 
     /**
@@ -140,14 +148,33 @@ public class MainFragment extends Fragment {
     private class MoviePosterAdaptor extends RecyclerView.Adapter<MoviePosterAdaptor.ViewHolder> {
 
         private Context mContext;
+        private Cursor mCursor;
+        private int mColumnPosterPath;
+        private int mColumnTitle;
+        private int mColumnMovieId;
 
         public MoviePosterAdaptor(Context c) {
             mContext = c;
         }
 
+        public void swapCursor(Cursor cursor) {
+            mCursor = cursor;
+            if (cursor != null) {
+                mColumnPosterPath = mCursor.getColumnIndex(MovieContract.MovieEntry.POSTER_PATH.COLUMN);
+                mColumnTitle = mCursor.getColumnIndex(MovieContract.MovieEntry.ORIGINAL_TITLE.COLUMN);
+                mColumnMovieId = mCursor.getColumnIndex(MovieEntry.MOVIE_ID.COLUMN);
+            }
+            notifyDataSetChanged();
+        }
+
+        public Cursor getCursor() {
+            return mCursor;
+        }
+
         @Override
         public int getItemCount() {
-            return movies.size();
+            if (mCursor != null) return mCursor.getCount();
+            else return 0;
         }
 
         @Override
@@ -158,9 +185,12 @@ public class MainFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(MoviePosterAdaptor.ViewHolder holder, int position) {
-            String imageUrl = getString(R.string.api_poster_base_path) + movies.get(position).posterPath;
-            Picasso.with(mContext).load(imageUrl).placeholder(R.drawable.noposter).error(R.drawable.noposter).into(holder.mImageView);
-            holder.mTextView.setText(movies.get(position).originalTitle);
+            mCursor.moveToPosition(position);
+            String imageUrl = getString(R.string.api_poster_base_path) + mCursor.getString(mColumnPosterPath);
+            holder.mImageView.setImageUrl(imageUrl, VolleySingleton.getInstance(getActivity()).getImageLoader());
+            holder.mImageView.setDefaultImageResId(R.drawable.noposter);
+            holder.mImageView.setErrorImageResId(R.drawable.noposter);
+            holder.mTextView.setText(mCursor.getString(mColumnTitle));
         }
 
         @Override
@@ -170,13 +200,13 @@ public class MainFragment extends Fragment {
 
         public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-            private ImageView mImageView;
+            private NetworkImageView mImageView;
             private TextView mTextView;
 
             public ViewHolder(View v) {
                 super(v);
                 v.setOnClickListener(this);
-                mImageView = (ImageView) v.findViewById(R.id.grid_item_moviepost_imageview);
+                mImageView = (NetworkImageView) v.findViewById(R.id.grid_item_moviepost_imageview);
                 mTextView = (TextView) v.findViewById(R.id.grid_item_moviepost_textview);
             }
 
@@ -188,7 +218,9 @@ public class MainFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Intent movieIntent = new Intent(getActivity(), MovieActivity.class);
-                movieIntent.putExtra("movie", Parcels.wrap(movies.get(getAdapterPosition())));
+                mCursor.moveToPosition(getAdapterPosition());
+                movieIntent.putExtra(Intent.EXTRA_SUBJECT, mCursor.getInt(mColumnMovieId));
+
                 startActivity(movieIntent);
             }
         }

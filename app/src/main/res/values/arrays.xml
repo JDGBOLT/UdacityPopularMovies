@@ -1,12 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="pref_sort_options">
-        <item>@string/pref_sort_label_popular</item>
-        <item>@string/pref_sort_label_rating</item>
+    <string-array name="pref_source_options">
+        <item>@string/pref_source_label_popular</item>
+        <item>@string/pref_source_label_rating</item>
     </string-array>
-    <string-array name="pref_sort_values">
-        <item>@string/pref_sort_popular</item>
-        <item>@string/pref_sort_rating</item>
+    <string-array name="pref_source_values">
+        <item>@string/pref_source_popular</item>
+        <item>@string/pref_source_rating</item>
+    </string-array>
+    <string-array name="pref_update_interval_options">
+        <item>1 Hour</item>
+        <item>3 Hours</item>
+        <item>8 Hours</item>
+        <item>12 Hours</item>
+        <item>24 Hours</item>
+    </string-array>
+    <string-array name="pref_update_interval_values">
+        <item>60</item>
+        <item>180</item>
+        <item>480</item>
+        <item>720</item>
+        <item>1440</item>
     </string-array>
     <string-array name="pref_column_landscape_options">
         <item>1 Column</item>
