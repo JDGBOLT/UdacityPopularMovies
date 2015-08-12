@@ -43,4 +43,4 @@ project.properties
 build/
 
 # Private Keys not for public use
-app/src/main/res/values/key.xml
+app/src/main/java/com/example/judge/popularmovies/api/TmdbApiKey.java
