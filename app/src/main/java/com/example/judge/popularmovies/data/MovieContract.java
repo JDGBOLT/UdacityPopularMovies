@@ -24,18 +24,28 @@ public class MovieContract {
         public static final String TABLE_NAME = "movie";
 
         public static final String SOURCE_FAVORITE = "favorite";
+        public static final String SOURCE_NOW_PLAYING = "now_playing";
         public static final String SOURCE_POPULAR = "popular";
         public static final String SOURCE_RATING = "top_rated";
+        public static final String SOURCE_UPCOMING = "upcoming";
 
+        public static final DatabaseColumn BACKDROP_PATH = new DatabaseColumn("backdrop_path", "backdrop_path", "text", "not null");
+        public static final DatabaseColumn HOMEPAGE = new DatabaseColumn("homepage", "homepage", "text", "not null");
+        public static final DatabaseColumn IMDB_ID = new DatabaseColumn("imdb_id", "imdb_id", "text", "not null");
         public static final DatabaseColumn MOVIE_ID = new DatabaseColumn("id", "movie_id", "integer", "not null");
+        public static final DatabaseColumn ORIGINAL_LANGUAGE = new DatabaseColumn("original_language", "original_language", "text", "not null");
         public static final DatabaseColumn ORIGINAL_TITLE = new DatabaseColumn("original_title", "original_title", "text", "not null");
         public static final DatabaseColumn OVERVIEW = new DatabaseColumn("overview", "overview", "text", "");
+        public static final DatabaseColumn POPULARITY = new DatabaseColumn("popularity", "popularity", "real", "not null");
         public static final DatabaseColumn RELEASE_DATE = new DatabaseColumn("release_date", "release_date", "text", "not null");
-        public static final DatabaseColumn POSTER_PATH = new DatabaseColumn("poster_path", "poster_path", "text", "");
+        public static final DatabaseColumn POSTER_PATH = new DatabaseColumn("poster_path", "poster_path", "text", "not null");
+        public static final DatabaseColumn RUNTIME = new DatabaseColumn("runtime", "runtime", "integer", "not null");
         public static final DatabaseColumn TITLE = new DatabaseColumn("title", "title", "text", "not null");
         public static final DatabaseColumn RATING = new DatabaseColumn("vote_average", "rating", "real", "not null");
-        public static final DatabaseColumn SOURCE = new DatabaseColumn("", "source", "text",
-                String.format("check(source = \"%s\" or source = \"%s\" or source = \"%s\")", SOURCE_FAVORITE, SOURCE_POPULAR, SOURCE_RATING));
+        public static final DatabaseColumn SOURCE = new DatabaseColumn("", "source", "text", "not null");
+        public static final DatabaseColumn STATUS = new DatabaseColumn("status", "status", "text", "not null");
+        public static final DatabaseColumn TAGLINE = new DatabaseColumn("tagline", "tagline", "text", "not null");
+        public static final DatabaseColumn VOTE_COUNT = new DatabaseColumn("vote_count", "votes", "integer", "not null");
 
         public static final DatabaseColumn[] NONAPI_COLUMNS = {
                 SOURCE
@@ -43,13 +53,22 @@ public class MovieContract {
 
 
         public static final DatabaseColumn[] API_COLUMNS = {
+                BACKDROP_PATH,
+                HOMEPAGE,
+                IMDB_ID,
                 MOVIE_ID,
+                ORIGINAL_LANGUAGE,
                 ORIGINAL_TITLE,
                 OVERVIEW,
-                RELEASE_DATE,
+                POPULARITY,
                 POSTER_PATH,
+                RATING,
+                RELEASE_DATE,
+                RUNTIME,
+                STATUS,
+                TAGLINE,
                 TITLE,
-                RATING
+                VOTE_COUNT
         };
         public static final DatabaseColumn[] COLUMNS = DatabaseColumn.concat(NONAPI_COLUMNS, API_COLUMNS);
 

@@ -71,6 +71,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
         Intent intent = getActivity().getIntent();
         mMovieId = intent.getIntExtra(Intent.EXTRA_SUBJECT, 0);
+        TmdbApiHandler.sync(TmdbApiHandler.SYNC_MOVIE_DETAIL, Integer.toString(mMovieId), getActivity());
         TmdbApiHandler.sync(TmdbApiHandler.SYNC_REVIEW, Integer.toString(mMovieId), getActivity());
         TmdbApiHandler.sync(TmdbApiHandler.SYNC_TRAILER, Integer.toString(mMovieId), getActivity());
 
