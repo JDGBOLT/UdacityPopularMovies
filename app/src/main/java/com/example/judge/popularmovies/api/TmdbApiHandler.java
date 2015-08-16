@@ -28,16 +28,20 @@ public class TmdbApiHandler {
     public static final int SYNC_REVIEW = 400;
     public static final int SYNC_TRAILER = 500;
     public static final int SYNC_MOVIE_DETAIL = 600;
+    public static final int SYNC_SEARCH = 700;
 
 
-    private static final Uri API_BASE_URI = Uri.parse("http://api.themoviedb.org/3/movie");
+    private static final Uri API_BASE_URI = Uri.parse("http://api.themoviedb.org/3");
+    private static final String MOVIE_PATH = "movie";
     private static final String NOW_PLAYING_PATH = "now_playing";
     private static final String POPULAR_PATH = "popular";
     private static final String RATING_PATH = "top_rated";
     private static final String UPCOMING_PATH = "upcoming";
     private static final String REVIEW_PATH = "reviews";
+    private static final String SEARCH_PATH = "search";
     private static final String TRAILER_PATH = "videos";
     private static final String API_KEY_PARAM = "api_key";
+    private static final String API_QUERY_PARAM = "query";
     private static final String API_RESULT_ARRAY_KEY = "results";
     private static final String LOG_TAG = TmdbApiHandler.class.getSimpleName();
 
@@ -62,19 +66,26 @@ public class TmdbApiHandler {
                         return;
                     }
                     case MovieEntry.SOURCE_NOW_PLAYING: {
-                        uri = API_BASE_URI.buildUpon().appendPath(NOW_PLAYING_PATH).appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
+                        uri = API_BASE_URI.buildUpon().appendPath(MOVIE_PATH).appendPath(NOW_PLAYING_PATH)
+                                .appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
                         break;
                     }
                     case MovieEntry.SOURCE_POPULAR: {
-                        uri = API_BASE_URI.buildUpon().appendPath(POPULAR_PATH).appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
+                        uri = API_BASE_URI.buildUpon().appendPath(MOVIE_PATH).appendPath(POPULAR_PATH)
+                                .appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
                         break;
                     }
                     case MovieEntry.SOURCE_RATING: {
-                        uri = API_BASE_URI.buildUpon().appendPath(RATING_PATH).appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
+                        uri = API_BASE_URI.buildUpon().appendPath(MOVIE_PATH).appendPath(RATING_PATH)
+                                .appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
                         break;
                     }
+                    case MovieEntry.SOURCE_SEARCH: {
+                        return;
+                    }
                     case MovieEntry.SOURCE_UPCOMING: {
-                        uri = API_BASE_URI.buildUpon().appendPath(UPCOMING_PATH).appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
+                        uri = API_BASE_URI.buildUpon().appendPath(MOVIE_PATH).appendPath(UPCOMING_PATH)
+                                .appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
                         break;
                     }
                     default:
@@ -93,6 +104,7 @@ public class TmdbApiHandler {
             case SYNC_REVIEW: {
 
                 uri = API_BASE_URI.buildUpon()
+                        .appendPath(MOVIE_PATH)
                         .appendPath(source).appendPath(REVIEW_PATH)
                         .appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
 
@@ -105,8 +117,24 @@ public class TmdbApiHandler {
                 update = false;
                 break;
             }
+            case SYNC_SEARCH: {
+                uri = API_BASE_URI.buildUpon()
+                        .appendPath(SEARCH_PATH)
+                        .appendPath(MOVIE_PATH)
+                        .appendQueryParameter(API_QUERY_PARAM, source)
+                        .appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
+                key = new String[]{MovieEntry.SOURCE_SEARCH};
+                contentUri = MovieEntry.CONTENT_URI;
+                apiColumns = MovieEntry.API_COLUMNS;
+                nonApiColumns = MovieEntry.NONAPI_COLUMNS;
+                type = MovieContract.PATH_MOVIE;
+                selection = MovieEntry.selectSource();
+                update = false;
+                break;
+            }
             case SYNC_TRAILER: {
                 uri = API_BASE_URI.buildUpon()
+                        .appendPath(MOVIE_PATH)
                         .appendPath(source).appendPath(TRAILER_PATH)
                         .appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
 
@@ -121,6 +149,7 @@ public class TmdbApiHandler {
             }
             case SYNC_MOVIE_DETAIL: {
                 uri = API_BASE_URI.buildUpon()
+                        .appendPath(MOVIE_PATH)
                         .appendPath(source)
                         .appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
 

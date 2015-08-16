@@ -2,15 +2,12 @@
     <string name="app_name">Popular Movies</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_settings">Settings</string>
-    <string name="pref_source_key">movie_sort</string>
-    <string name="pref_source_title">Movie Sort</string>
-    <string name="pref_source_default">popular</string>
-    <string name="pref_source_popular">popular</string>
-    <string name="pref_source_label_popular">Most Popular</string>
-    <string name="pref_source_rating">top_rated</string>
-    <string name="pref_source_label_rating">Highest Rating</string>
     <string name="title_activity_movie">Movie Details</string>
+    <string name="access_drawer_open">Open Navigation Drawer</string>
+    <string name="access_drawer_close">Close Navigation Drawer</string>
     <string name="api_poster_base_path">http://image.tmdb.org/t/p/w185</string>
+    <string name="api_backdrop_base_path">http://image.tmdb.org/t/p/w300</string>
+    <string name="pref_source_key">source</string>
     <string name="pref_column_landscape_key">column_landscape</string>
     <string name="pref_column_landscape_title">Number of Columns (Landscape)</string>
     <string name="pref_column_landscape_default">3</string>
@@ -21,4 +18,10 @@
     <string name="pref_update_interval_title">Update Interval</string>
     <string name="pref_update_interval_default">180</string>
     <string name="content_authority">com.example.judge.popularmovies</string>
+    <string name="source_favorite">Favorite</string>
+    <string name="source_now_playing">Now Playing</string>
+    <string name="source_popular">Most Popular</string>
+    <string name="source_top_rated">Top Rated</string>
+    <string name="source_upcoming">Upcoming</string>
+    <string name="source_search">Search Results</string>
 </resources>

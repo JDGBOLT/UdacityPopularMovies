@@ -4,7 +4,6 @@
 
 package com.example.judge.popularmovies.frag;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -12,23 +11,28 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.android.volley.toolbox.NetworkImageView;
 import com.example.judge.popularmovies.R;
-import com.example.judge.popularmovies.act.MovieActivity;
+import com.example.judge.popularmovies.act.SettingsActivity;
+import com.example.judge.popularmovies.adap.MoviePosterAdaptor;
 import com.example.judge.popularmovies.api.TmdbApiHandler;
-import com.example.judge.popularmovies.api.VolleySingleton;
-import com.example.judge.popularmovies.data.MovieContract;
 import com.example.judge.popularmovies.data.MovieContract.MovieEntry;
 
 
@@ -39,21 +43,42 @@ import com.example.judge.popularmovies.data.MovieContract.MovieEntry;
 
 public class MainFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    // Movie Loader
     private static final int MOVIE_LOADER = 0;
-    private final String LOG_TAG = MainFragment.class.getSimpleName();
-    private final String BUNDLE_LAYOUT_TAG = "layout";
-
+    private static final String[] MOVIE_COLUMNS = {
+            MovieEntry.MOVIE_ID.COLUMN,
+            MovieEntry.ORIGINAL_TITLE.COLUMN,
+            MovieEntry.POSTER_PATH.COLUMN,
+            MovieEntry.BACKDROP_PATH.COLUMN,
+    };
+    private static final int COLUMN_MOVIE_ID = 0;
+    private static final int COLUMN_ORIGINAL_TITLE = 1;
+    private static final int COLUMN_POSTER_PATH = 2;
+    private static final int COLUMN_BACKDROP_PATH = 3;
+    private static final String LOG_TAG = MainFragment.class.getSimpleName();
+    private static final String BUNDLE_LAYOUT_TAG = "layout";
+    private Cursor mMovies;
+    private NetworkImageView mNavHeader;
     private SharedPreferences mPref;
-
     private String mSource = MovieEntry.SOURCE_POPULAR;
+    private SwipeRefreshLayout mSwipeRefresh;
     private MoviePosterAdaptor mAdaptor;
-    private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
+    private DrawerLayout mDrawerLayout;
+    private ActionBarDrawerToggle mDrawerToggle;
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putParcelable(BUNDLE_LAYOUT_TAG, mLayoutManager.onSaveInstanceState());
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -63,6 +88,29 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         mPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        mDrawerLayout = (DrawerLayout) rootView.findViewById(R.id.main_drawer);
+        mNavHeader = (NetworkImageView) rootView.findViewById(R.id.main_nav_header_image);
+
+        setupRecycler(rootView);
+        setupToolbar(rootView);
+        setupNav(rootView);
+        setupSwipeToRefresh(rootView);
+        setHasOptionsMenu(true);
+
+        return rootView;
+    }
+
+    private void setupSwipeToRefresh(View view) {
+        mSwipeRefresh = (SwipeRefreshLayout) view.findViewById(R.id.main_swipe_refresh);
+        mSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                TmdbApiHandler.sync(TmdbApiHandler.SYNC_MOVIE, mSource, getActivity(), true);
+            }
+        });
+    }
+
+    private void setupRecycler(View view) {
 
         int numColumns = Integer.parseInt(mPref.getString(
                 getString(R.string.pref_column_portrait_key),
@@ -77,10 +125,76 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         mAdaptor = new MoviePosterAdaptor(getActivity());
         mLayoutManager = new GridLayoutManager(getActivity(), numColumns);
 
-        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_moviepost);
-        mRecyclerView.setAdapter(mAdaptor);
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        return rootView;
+        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recyclerview_moviepost);
+        recyclerView.setAdapter(mAdaptor);
+        recyclerView.setLayoutManager(mLayoutManager);
+
+    }
+
+    private void setupToolbar(View view) {
+
+        final AppCompatActivity activity = (AppCompatActivity) getActivity();
+        activity.setSupportActionBar((Toolbar) view.findViewById(R.id.toolbar));
+        mDrawerToggle = new ActionBarDrawerToggle(getActivity(), mDrawerLayout, R.string.access_drawer_open, R.string.access_drawer_close);
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
+        activity.getSupportActionBar().setHomeButtonEnabled(true);
+        activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        mDrawerToggle.syncState();
+    }
+
+    private void setupNav(View view) {
+        NavigationView nav = (NavigationView) view.findViewById(R.id.main_nav_view);
+        nav.setNavigationItemSelectedListener(
+                new NavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+                        switch (menuItem.getItemId()) {
+                            case R.id.nav_source_favorite: {
+                                getActivity().setTitle(menuItem.getTitle() + " Movies");
+                                changeSource(MovieEntry.SOURCE_FAVORITE);
+                                menuItem.setChecked(true);
+                                break;
+                            }
+                            case R.id.nav_source_now_playing: {
+                                getActivity().setTitle(menuItem.getTitle() + " Movies");
+                                changeSource(MovieEntry.SOURCE_NOW_PLAYING);
+                                menuItem.setChecked(true);
+                                break;
+                            }
+                            case R.id.nav_source_popular: {
+                                getActivity().setTitle(menuItem.getTitle() + " Movies");
+                                changeSource(MovieEntry.SOURCE_POPULAR);
+                                menuItem.setChecked(true);
+                                break;
+                            }
+                            case R.id.nav_source_search: {
+                                getActivity().setTitle(menuItem.getTitle());
+                                changeSource(MovieEntry.SOURCE_SEARCH);
+                                menuItem.setChecked(true);
+                                break;
+                            }
+                            case R.id.nav_source_top_rated: {
+                                getActivity().setTitle(menuItem.getTitle() + " Movies");
+                                changeSource(MovieEntry.SOURCE_RATING);
+                                menuItem.setChecked(true);
+                                break;
+                            }
+                            case R.id.nav_source_upcoming: {
+                                getActivity().setTitle(menuItem.getTitle() + " Movies");
+                                changeSource(MovieEntry.SOURCE_UPCOMING);
+                                menuItem.setChecked(true);
+                                break;
+                            }
+                            case R.id.nav_settings: {
+                                mDrawerLayout.closeDrawers();
+                                startActivity(new Intent(getActivity(), SettingsActivity.class));
+                            }
+                        }
+                        mDrawerLayout.closeDrawers();
+                        return false;
+                    }
+                }
+        );
     }
 
     @Override
@@ -112,9 +226,14 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
      * and use it to populate the arraylist of Movie objects.
      */
 
+    private void changeSource(String source) {
+        mPref.edit().putString(getString(R.string.pref_source_key), source).apply();
+        loadMovieData();
+    }
+
     private void loadMovieData() {
         String oldSource = mSource;
-        mSource = mPref.getString(getString(R.string.pref_source_key), getString(R.string.pref_source_default));
+        mSource = mPref.getString(getString(R.string.pref_source_key), MovieEntry.SOURCE_POPULAR);
         TmdbApiHandler.sync(TmdbApiHandler.SYNC_MOVIE, mSource, getActivity());
         if (!mSource.equals(oldSource)) {
             getLoaderManager().restartLoader(MOVIE_LOADER, null, this);
@@ -123,106 +242,29 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        String source = mPref.getString(getString(R.string.pref_source_key), getString(R.string.pref_source_default));
+        String source = mPref.getString(getString(R.string.pref_source_key), MovieEntry.SOURCE_POPULAR);
         return new CursorLoader(getActivity(), MovieEntry.CONTENT_URI,
-                new String[]{MovieEntry.POSTER_PATH.COLUMN, MovieEntry.ORIGINAL_TITLE.COLUMN, MovieEntry.MOVIE_ID.COLUMN},
-                MovieEntry.selectSource(), new String[]{source}, null);
+                MOVIE_COLUMNS, MovieEntry.selectSource(), new String[]{source}, null);
 
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        mAdaptor.swapCursor(data);
+        mMovies = data;
+        mAdaptor.swapCursor(mMovies);
+        mSwipeRefresh.setRefreshing(false);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+        mMovies = null;
         mAdaptor.swapCursor(null);
     }
 
-    /**
-     * Adaptor in order to feed the gridview movie posters, uses volley in order to provide
-     * dynamically cached images for use in the view
-     */
-
-    private class MoviePosterAdaptor extends RecyclerView.Adapter<MoviePosterAdaptor.ViewHolder> {
-
-        private Context mContext;
-        private Cursor mCursor;
-        private int mColumnPosterPath;
-        private int mColumnTitle;
-        private int mColumnMovieId;
-
-        public MoviePosterAdaptor(Context c) {
-            mContext = c;
-        }
-
-        public void swapCursor(Cursor cursor) {
-            mCursor = cursor;
-            if (cursor != null) {
-                mColumnPosterPath = mCursor.getColumnIndex(MovieContract.MovieEntry.POSTER_PATH.COLUMN);
-                mColumnTitle = mCursor.getColumnIndex(MovieContract.MovieEntry.ORIGINAL_TITLE.COLUMN);
-                mColumnMovieId = mCursor.getColumnIndex(MovieEntry.MOVIE_ID.COLUMN);
-            }
-            notifyDataSetChanged();
-        }
-
-        public Cursor getCursor() {
-            return mCursor;
-        }
-
-        @Override
-        public int getItemCount() {
-            if (mCursor != null) return mCursor.getCount();
-            else return 0;
-        }
-
-        @Override
-        public MoviePosterAdaptor.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.grid_item_movieposter, parent, false);
-            return new ViewHolder(v);
-        }
-
-        @Override
-        public void onBindViewHolder(MoviePosterAdaptor.ViewHolder holder, int position) {
-            mCursor.moveToPosition(position);
-            String imageUrl = getString(R.string.api_poster_base_path) + mCursor.getString(mColumnPosterPath);
-            holder.mImageView.setImageUrl(imageUrl, VolleySingleton.getInstance(getActivity()).getImageLoader());
-            holder.mImageView.setDefaultImageResId(R.drawable.noposter);
-            holder.mImageView.setErrorImageResId(R.drawable.noposter);
-            holder.mTextView.setText(mCursor.getString(mColumnTitle));
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
-
-        public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-
-            private NetworkImageView mImageView;
-            private TextView mTextView;
-
-            public ViewHolder(View v) {
-                super(v);
-                v.setOnClickListener(this);
-                mImageView = (NetworkImageView) v.findViewById(R.id.grid_item_moviepost_imageview);
-                mTextView = (TextView) v.findViewById(R.id.grid_item_moviepost_textview);
-            }
-
-            /**
-             * Called when a view has been clicked.
-             *
-             * @param v The view that was clicked.
-             */
-            @Override
-            public void onClick(View v) {
-                Intent movieIntent = new Intent(getActivity(), MovieActivity.class);
-                mCursor.moveToPosition(getAdapterPosition());
-                movieIntent.putExtra(Intent.EXTRA_SUBJECT, mCursor.getInt(mColumnMovieId));
-
-                startActivity(movieIntent);
-            }
-        }
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        mDrawerToggle.onConfigurationChanged(newConfig);
     }
+
 }

@@ -8,12 +8,6 @@
         android:key="@string/pref_update_interval_key"
         android:title="@string/pref_update_interval_title" />
     <ListPreference
-        android:defaultValue="@string/pref_source_default"
-        android:entries="@array/pref_source_options"
-        android:entryValues="@array/pref_source_values"
-        android:key="@string/pref_source_key"
-        android:title="@string/pref_source_title" />
-    <ListPreference
         android:defaultValue="@string/pref_column_landscape_default"
         android:entries="@array/pref_column_landscape_options"
         android:entryValues="@array/pref_column_landscape_values"

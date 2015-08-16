@@ -28,6 +28,7 @@ public class MovieContract {
         public static final String SOURCE_POPULAR = "popular";
         public static final String SOURCE_RATING = "top_rated";
         public static final String SOURCE_UPCOMING = "upcoming";
+        public static final String SOURCE_SEARCH = "search";
 
         public static final DatabaseColumn BACKDROP_PATH = new DatabaseColumn("backdrop_path", "backdrop_path", "text", "not null");
         public static final DatabaseColumn HOMEPAGE = new DatabaseColumn("homepage", "homepage", "text", "not null");
