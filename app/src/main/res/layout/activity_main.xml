@@ -1,7 +1,26 @@
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main_fragment"
-    android:name="com.example.judge.popularmovies.frag.MainFragment"
+    android:id="@+id/main_drawer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:layout="@layout/fragment_main" />
+    android:fitsSystemWindows="true"
+    tools:context="com.example.judge.popularmovies.act.MainActivity">
+
+    <include layout="@layout/include_poster_viewpager" />
+
+    <!--<fragment
+        android:id="@+id/main_fragment"
+        android:name="com.example.judge.popularmovies.frag.PosterFragmentnt"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:layout="@layout/fragment_main" />-->
+
+    <android.support.design.widget.NavigationView
+        android:id="@+id/main_nav_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/nav_menu" />
+</android.support.v4.widget.DrawerLayout>

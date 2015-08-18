@@ -13,6 +13,7 @@ public class MovieProvider extends ContentProvider {
     private static final int MOVIE = 100;
     private static final int REVIEW = 101;
     private static final int TRAILER = 102;
+    private static final int TV = 103;
 
     private static final UriMatcher sUriMatcher = buildUriMatcher();
 
@@ -25,6 +26,7 @@ public class MovieProvider extends ContentProvider {
         matcher.addURI(authority, MovieContract.PATH_MOVIE, MOVIE);
         matcher.addURI(authority, MovieContract.PATH_REVIEW, REVIEW);
         matcher.addURI(authority, MovieContract.PATH_TRAILER, TRAILER);
+        matcher.addURI(authority, MovieContract.PATH_TV, TV);
 
         return matcher;
     }
@@ -39,6 +41,8 @@ public class MovieProvider extends ContentProvider {
                 return MovieContract.ReviewEntry.CONTENT_TYPE;
             case TRAILER:
                 return MovieContract.TrailerEntry.CONTENT_TYPE;
+            case TV:
+                return MovieContract.TVEntry.CONTENT_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -66,6 +70,10 @@ public class MovieProvider extends ContentProvider {
             }
             case TRAILER: {
                 table = MovieContract.TrailerEntry.TABLE_NAME;
+                break;
+            }
+            case TV: {
+                table = MovieContract.TVEntry.TABLE_NAME;
                 break;
             }
             default: {
@@ -119,6 +127,15 @@ public class MovieProvider extends ContentProvider {
                 }
                 break;
             }
+            case TV: {
+                long _id = db.insert(MovieContract.TVEntry.TABLE_NAME, null, values);
+                if (_id > 0) {
+                    returnUri = MovieContract.TVEntry.buildTVUri(_id);
+                } else {
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                }
+                break;
+            }
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -142,6 +159,10 @@ public class MovieProvider extends ContentProvider {
             }
             case TRAILER: {
                 rowsDeleted = db.delete(MovieContract.TrailerEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            }
+            case TV: {
+                rowsDeleted = db.delete(MovieContract.TVEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             }
             default:
@@ -171,6 +192,10 @@ public class MovieProvider extends ContentProvider {
                 rowsUpdated = db.update(MovieContract.TrailerEntry.TABLE_NAME, values, selection, selectionArgs);
                 break;
             }
+            case TV: {
+                rowsUpdated = db.update(MovieContract.TVEntry.TABLE_NAME, values, selection, selectionArgs);
+                break;
+            }
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -196,6 +221,10 @@ public class MovieProvider extends ContentProvider {
             }
             case TRAILER: {
                 table = MovieContract.TrailerEntry.TABLE_NAME;
+                break;
+            }
+            case TV: {
+                table = MovieContract.TVEntry.TABLE_NAME;
                 break;
             }
             default:

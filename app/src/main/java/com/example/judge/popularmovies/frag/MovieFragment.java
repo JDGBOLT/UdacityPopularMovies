@@ -14,7 +14,6 @@ import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.android.volley.toolbox.NetworkImageView;
@@ -54,15 +53,12 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     };
     private static final String LOG_TAG = MovieFragment.class.getSimpleName();
     private int mMovieId;
-    private LinearLayout mReviews, mTrailers;
-    private LayoutInflater mInflater;
     private View mLayout;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         mLayout = inflater.inflate(R.layout.fragment_movie, container, false);
-        mInflater = inflater;
         return mLayout;
     }
 
@@ -72,8 +68,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         Intent intent = getActivity().getIntent();
         mMovieId = intent.getIntExtra(Intent.EXTRA_SUBJECT, 0);
         TmdbApiHandler.sync(TmdbApiHandler.SYNC_MOVIE_DETAIL, Integer.toString(mMovieId), getActivity());
-        TmdbApiHandler.sync(TmdbApiHandler.SYNC_REVIEW, Integer.toString(mMovieId), getActivity());
-        TmdbApiHandler.sync(TmdbApiHandler.SYNC_TRAILER, Integer.toString(mMovieId), getActivity());
+        TmdbApiHandler.sync(TmdbApiHandler.SYNC_MOVIE_REVIEW, Integer.toString(mMovieId), getActivity());
+        TmdbApiHandler.sync(TmdbApiHandler.SYNC_MOVIE_TRAILER, Integer.toString(mMovieId), getActivity());
 
         getLoaderManager().initLoader(DETAIL_LOADER, null, this);
         getLoaderManager().initLoader(REVIEW_LOADER, null, this);

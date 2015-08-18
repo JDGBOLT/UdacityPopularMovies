@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.support.annotation.IntDef;
 import android.util.Log;
 
 import com.android.volley.Response;
@@ -14,6 +15,7 @@ import com.example.judge.popularmovies.R;
 import com.example.judge.popularmovies.data.MovieContract;
 import com.example.judge.popularmovies.data.MovieContract.MovieEntry;
 import com.example.judge.popularmovies.data.MovieContract.ReviewEntry;
+import com.example.judge.popularmovies.data.MovieContract.TVEntry;
 import com.example.judge.popularmovies.data.MovieContract.TrailerEntry;
 
 import org.json.JSONArray;
@@ -24,15 +26,20 @@ import java.util.Date;
 
 public class TmdbApiHandler {
 
-    public static final int SYNC_MOVIE = 300;
-    public static final int SYNC_REVIEW = 400;
-    public static final int SYNC_TRAILER = 500;
-    public static final int SYNC_MOVIE_DETAIL = 600;
-    public static final int SYNC_SEARCH = 700;
-
-
+    public static final int SYNC_MOVIE = 0;
+    public static final int SYNC_MOVIE_REVIEW = 1;
+    public static final int SYNC_MOVIE_TRAILER = 2;
+    public static final int SYNC_MOVIE_DETAIL = 3;
+    public static final int SYNC_MOVIE_SEARCH = 4;
+    public static final int SYNC_TV = 5;
+    public static final int SYNC_TV_TRAILER = 6;
+    public static final int SYNC_TV_DETAIL = 7;
+    public static final int SYNC_TV_SEARCH = 8;
     private static final Uri API_BASE_URI = Uri.parse("http://api.themoviedb.org/3");
     private static final String MOVIE_PATH = "movie";
+    private static final String TV_PATH = "tv";
+    private static final String AIRING_TODAY_PATH = "airing_today";
+    private static final String ON_THE_AIR_PATH = "on_the_air";
     private static final String NOW_PLAYING_PATH = "now_playing";
     private static final String POPULAR_PATH = "popular";
     private static final String RATING_PATH = "top_rated";
@@ -45,11 +52,11 @@ public class TmdbApiHandler {
     private static final String API_RESULT_ARRAY_KEY = "results";
     private static final String LOG_TAG = TmdbApiHandler.class.getSimpleName();
 
-    public static void sync(final int syncType, final String source, final Context context) {
+    public static void sync(final @SyncType int syncType, final String source, final Context context) {
         sync(syncType, source, context, false);
     }
 
-    public static void sync(final int syncType, final String source, final Context context, boolean force) {
+    public static void sync(final @SyncType int syncType, final String source, final Context context, final boolean force) {
 
         final MovieContract.DatabaseColumn[] apiColumns, nonApiColumns;
         final boolean update;
@@ -101,7 +108,7 @@ public class TmdbApiHandler {
                 update = false;
                 break;
             }
-            case SYNC_REVIEW: {
+            case SYNC_MOVIE_REVIEW: {
 
                 uri = API_BASE_URI.buildUpon()
                         .appendPath(MOVIE_PATH)
@@ -117,7 +124,7 @@ public class TmdbApiHandler {
                 update = false;
                 break;
             }
-            case SYNC_SEARCH: {
+            case SYNC_MOVIE_SEARCH: {
                 uri = API_BASE_URI.buildUpon()
                         .appendPath(SEARCH_PATH)
                         .appendPath(MOVIE_PATH)
@@ -132,7 +139,7 @@ public class TmdbApiHandler {
                 update = false;
                 break;
             }
-            case SYNC_TRAILER: {
+            case SYNC_MOVIE_TRAILER: {
                 uri = API_BASE_URI.buildUpon()
                         .appendPath(MOVIE_PATH)
                         .appendPath(source).appendPath(TRAILER_PATH)
@@ -159,6 +166,94 @@ public class TmdbApiHandler {
                 nonApiColumns = MovieEntry.NONAPI_COLUMNS;
                 type = MovieContract.PATH_MOVIE;
                 selection = MovieEntry.selectId();
+                update = true;
+                break;
+            }
+            case SYNC_TV: {
+
+                switch (source) {
+                    case TVEntry.SOURCE_FAVORITE: {
+                        Log.v(LOG_TAG, "Attempted to sync offline source " + source);
+                        return;
+                    }
+                    case TVEntry.SOURCE_AIRING_TODAY: {
+                        uri = API_BASE_URI.buildUpon().appendPath(TV_PATH).appendPath(AIRING_TODAY_PATH)
+                                .appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
+                        break;
+                    }
+                    case TVEntry.SOURCE_ON_THE_AIR: {
+                        uri = API_BASE_URI.buildUpon().appendPath(TV_PATH).appendPath(ON_THE_AIR_PATH)
+                                .appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
+                        break;
+                    }
+                    case TVEntry.SOURCE_POPULAR: {
+                        uri = API_BASE_URI.buildUpon().appendPath(TV_PATH).appendPath(POPULAR_PATH)
+                                .appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
+                        break;
+                    }
+                    case TVEntry.SOURCE_RATING: {
+                        uri = API_BASE_URI.buildUpon().appendPath(TV_PATH).appendPath(RATING_PATH)
+                                .appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
+                        break;
+                    }
+                    case TVEntry.SOURCE_SEARCH: {
+                        return;
+                    }
+                    default:
+                        throw new UnsupportedOperationException("Source not known: " + source);
+                }
+
+                key = new String[]{source};
+                contentUri = TVEntry.CONTENT_URI;
+                apiColumns = TVEntry.API_COLUMNS;
+                nonApiColumns = TVEntry.NONAPI_COLUMNS;
+                type = MovieContract.PATH_TV;
+                selection = TVEntry.selectSource();
+                update = false;
+                break;
+            }
+            case SYNC_TV_SEARCH: {
+                uri = API_BASE_URI.buildUpon()
+                        .appendPath(SEARCH_PATH)
+                        .appendPath(TV_PATH)
+                        .appendQueryParameter(API_QUERY_PARAM, source)
+                        .appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
+                key = new String[]{TVEntry.SOURCE_SEARCH};
+                contentUri = TVEntry.CONTENT_URI;
+                apiColumns = TVEntry.API_COLUMNS;
+                nonApiColumns = TVEntry.NONAPI_COLUMNS;
+                type = MovieContract.PATH_TV;
+                selection = TVEntry.selectSource();
+                update = false;
+                break;
+            }
+            case SYNC_TV_TRAILER: {
+                uri = API_BASE_URI.buildUpon()
+                        .appendPath(TV_PATH)
+                        .appendPath(source).appendPath(TRAILER_PATH)
+                        .appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
+
+                key = new String[]{source};
+                contentUri = TrailerEntry.CONTENT_URI;
+                apiColumns = TrailerEntry.API_COLUMNS;
+                nonApiColumns = TrailerEntry.NONAPI_COLUMNS;
+                type = MovieContract.PATH_TRAILER;
+                selection = TrailerEntry.selectId();
+                update = false;
+                break;
+            }
+            case SYNC_TV_DETAIL: {
+                uri = API_BASE_URI.buildUpon()
+                        .appendPath(TV_PATH)
+                        .appendPath(source)
+                        .appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
+
+                key = new String[]{source};
+                contentUri = TVEntry.CONTENT_URI;
+                apiColumns = TVEntry.API_COLUMNS;
+                nonApiColumns = TVEntry.NONAPI_COLUMNS;
+                type = MovieContract.PATH_TV;
+                selection = TVEntry.selectId();
                 update = true;
                 break;
             }
@@ -211,7 +306,7 @@ public class TmdbApiHandler {
                                             values[i].put(apiColumn.COLUMN, object.optDouble(apiColumn.API, -1));
                                             break;
                                         }
-                                        }
+                                    }
                                 }
                             }
 
@@ -241,5 +336,19 @@ public class TmdbApiHandler {
 
             VolleySingleton.getInstance(context).getRequestQueue().add(request);
         }
+    }
+
+    @IntDef({
+            SYNC_MOVIE,
+            SYNC_MOVIE_REVIEW,
+            SYNC_MOVIE_TRAILER,
+            SYNC_MOVIE_DETAIL,
+            SYNC_MOVIE_SEARCH,
+            SYNC_TV,
+            SYNC_TV_TRAILER,
+            SYNC_TV_DETAIL,
+            SYNC_TV_SEARCH
+    })
+    public @interface SyncType {
     }
 }

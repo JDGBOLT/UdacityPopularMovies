@@ -24,8 +24,8 @@ public class VolleySingleton {
     private static final int sLruCacheSize = 20;
     private static VolleySingleton sInstance;
     private static Context sCtx;
+    private final ImageLoader mImageLoader;
     private RequestQueue mRequestQueue;
-    private ImageLoader mImageLoader;
 
 
     private VolleySingleton(Context context) {

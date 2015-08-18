@@ -2,16 +2,16 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/colorPrimaryDark"
     android:gravity="bottom"
     android:orientation="vertical"
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
 
-    <com.android.volley.toolbox.NetworkImageView
+    <ImageView
         android:id="@+id/main_nav_header_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:adjustViewBounds="true" />
+        android:adjustViewBounds="true"
+        android:src="@drawable/header_background" />
 
     <TextView
         android:id="@+id/main_nav_header_text"
@@ -19,6 +19,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:text="@string/app_name"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+        android:textAppearance="@style/TextAppearance.AppCompat.Headline" />
 
 </FrameLayout>

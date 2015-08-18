@@ -1,27 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <group android:checkableBehavior="single">
+    <group
+        android:id="@+id/nav_group_media"
+        android:checkableBehavior="single"
+        android:title="@string/nav_media">
         <item
-            android:id="@+id/nav_source_favorite"
-            android:title="@string/source_favorite" />
+            android:id="@+id/nav_media_movie"
+            android:icon="@drawable/ic_movie_black_24dp"
+            android:title="@string/nav_media_movie" />
         <item
-            android:id="@+id/nav_source_now_playing"
-            android:title="@string/source_now_playing" />
-        <item
-            android:id="@+id/nav_source_popular"
-            android:title="@string/source_popular" />
-        <item
-            android:id="@+id/nav_source_search"
-            android:title="@string/source_search" />
-        <item
-            android:id="@+id/nav_source_top_rated"
-            android:title="@string/source_top_rated" />
-        <item
-            android:id="@+id/nav_source_upcoming"
-            android:title="@string/source_upcoming" />
+            android:id="@+id/nav_media_tv"
+            android:icon="@drawable/ic_tv_black_24dp"
+            android:title="@string/nav_media_tv" />
     </group>
-    <item
-        android:id="@+id/nav_settings"
-        android:title="@string/action_settings" />
-
+    <group
+        android:id="@+id/nav_group_settings"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_settings"
+            android:title="@string/action_settings" />
+    </group>
 </menu>

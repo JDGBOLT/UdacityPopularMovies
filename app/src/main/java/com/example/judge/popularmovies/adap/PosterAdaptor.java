@@ -20,15 +20,15 @@ import com.example.judge.popularmovies.data.MovieContract;
  * dynamically cached images for use in the view
  */
 
-public class MoviePosterAdaptor extends RecyclerView.Adapter<MoviePosterAdaptor.ViewHolder> {
+public class PosterAdaptor extends RecyclerView.Adapter<PosterAdaptor.ViewHolder> {
 
-    private Context mContext;
+    private final Context mContext;
     private Cursor mCursor;
     private int mColumnPosterPath;
     private int mColumnTitle;
-    private int mColumnMovieId;
+    private int mColumnMediaId;
 
-    public MoviePosterAdaptor(Context c) {
+    public PosterAdaptor(Context c) {
         mContext = c;
     }
 
@@ -37,13 +37,9 @@ public class MoviePosterAdaptor extends RecyclerView.Adapter<MoviePosterAdaptor.
         if (cursor != null) {
             mColumnPosterPath = mCursor.getColumnIndex(MovieContract.MovieEntry.POSTER_PATH.COLUMN);
             mColumnTitle = mCursor.getColumnIndex(MovieContract.MovieEntry.ORIGINAL_TITLE.COLUMN);
-            mColumnMovieId = mCursor.getColumnIndex(MovieContract.MovieEntry.MOVIE_ID.COLUMN);
+            mColumnMediaId = mCursor.getColumnIndex(MovieContract.MovieEntry.MEDIA_ID.COLUMN);
         }
         notifyDataSetChanged();
-    }
-
-    public Cursor getCursor() {
-        return mCursor;
     }
 
     @Override
@@ -61,8 +57,11 @@ public class MoviePosterAdaptor extends RecyclerView.Adapter<MoviePosterAdaptor.
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         mCursor.moveToPosition(position);
-        String imageUrl = mContext.getString(R.string.api_poster_base_path) + mCursor.getString(mColumnPosterPath);
-        holder.mImageView.setImageUrl(imageUrl, VolleySingleton.getInstance(mContext).getImageLoader());
+        String posterPath = mCursor.getString(mColumnPosterPath);
+        if (!posterPath.equals("null")) {
+            String imageUrl = mContext.getString(R.string.api_poster_base_path) + posterPath;
+            holder.mImageView.setImageUrl(imageUrl, VolleySingleton.getInstance(mContext).getImageLoader());
+        }
         holder.mImageView.setDefaultImageResId(R.drawable.noposter);
         holder.mImageView.setErrorImageResId(R.drawable.noposter);
         holder.mTextView.setText(mCursor.getString(mColumnTitle));
@@ -75,8 +74,8 @@ public class MoviePosterAdaptor extends RecyclerView.Adapter<MoviePosterAdaptor.
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-        private NetworkImageView mImageView;
-        private TextView mTextView;
+        private final NetworkImageView mImageView;
+        private final TextView mTextView;
 
         public ViewHolder(View v) {
             super(v);
@@ -94,7 +93,7 @@ public class MoviePosterAdaptor extends RecyclerView.Adapter<MoviePosterAdaptor.
         public void onClick(View v) {
             Intent movieIntent = new Intent(mContext, MovieActivity.class);
             mCursor.moveToPosition(getAdapterPosition());
-            movieIntent.putExtra(Intent.EXTRA_SUBJECT, mCursor.getInt(mColumnMovieId));
+            movieIntent.putExtra(Intent.EXTRA_SUBJECT, mCursor.getInt(mColumnMediaId));
 
             mContext.startActivity(movieIntent);
         }

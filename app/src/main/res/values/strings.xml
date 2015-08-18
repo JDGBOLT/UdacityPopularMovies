@@ -18,10 +18,20 @@
     <string name="pref_update_interval_title">Update Interval</string>
     <string name="pref_update_interval_default">180</string>
     <string name="content_authority">com.example.judge.popularmovies</string>
-    <string name="source_favorite">Favorite</string>
-    <string name="source_now_playing">Now Playing</string>
-    <string name="source_popular">Most Popular</string>
-    <string name="source_top_rated">Top Rated</string>
-    <string name="source_upcoming">Upcoming</string>
-    <string name="source_search">Search Results</string>
+    <string name="movie_source_favorite">Favorite Movies</string>
+    <string name="movie_source_now_playing">Now Playing Movies</string>
+    <string name="movie_source_popular">Most Popular Movies</string>
+    <string name="movie_source_top_rated">Top Rated Movies</string>
+    <string name="movie_source_upcoming">Upcoming Movies</string>
+    <string name="movie_source_search">Movie Search Results</string>
+    <string name="tv_source_favorite">Favorite TV Shows</string>
+    <string name="tv_source_on_the_air">TV Shows on the Air </string>
+    <string name="tv_source_popular">Most Popular TV Shows</string>
+    <string name="tv_source_top_rated">Top Rated TV Shows</string>
+    <string name="tv_source_airing_today">TV Shows airing Today</string>
+    <string name="tv_source_search">TV Show Search Results</string>
+    <string name="nav_movie_media">Movies</string>
+    <string name="nav_media_movie">Movies</string>
+    <string name="nav_media_tv">TV Shows</string>
+    <string name="nav_media">Media</string>
 </resources>
