@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -38,7 +39,9 @@ import butterknife.ButterKnife;
  * then be touched on in order to provide more detailed movie information in a separate view.
  */
 
-public class PosterFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class PosterFragment extends Fragment implements
+        LoaderManager.LoaderCallbacks<Cursor>,
+        SharedPreferences.OnSharedPreferenceChangeListener {
 
     // Movie Loader
     private static final int POSTER_LOADER = 0;
@@ -56,6 +59,7 @@ public class PosterFragment extends Fragment implements LoaderManager.LoaderCall
     private static final String BUNDLE_LAYOUT_TAG = "layout";
     private static final String BUNDLE_SOURCE_TAG = "source";
     private static final String BUNDLE_TYPE_TAG = "type";
+    private static final String BUNDLE_LAYOUT_POSITION_TAG = "position";
     @Bind(R.id.main_swipe_refresh)
     SwipeRefreshLayout mSwipeRefresh;
     @Bind(R.id.recyclerview_moviepost)
@@ -64,6 +68,8 @@ public class PosterFragment extends Fragment implements LoaderManager.LoaderCall
     private SharedPreferences mPref;
     private PosterAdaptor mAdaptor;
     private GridLayoutManager mLayoutManager;
+    private Parcelable layoutManagerState;
+    private int mScrollPosition;
 
     public static PosterFragment newInstance(String source, String type) {
 
@@ -101,6 +107,16 @@ public class PosterFragment extends Fragment implements LoaderManager.LoaderCall
         setupRecycler();
         setupSwipeToRefresh();
 
+        if (savedInstanceState != null) {
+            layoutManagerState = savedInstanceState.getParcelable(BUNDLE_LAYOUT_TAG);
+
+            mRecyclerView.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mLayoutManager.onRestoreInstanceState(layoutManagerState);
+                }
+            }, 250);
+        }
 
         return rootView;
     }
@@ -135,8 +151,8 @@ public class PosterFragment extends Fragment implements LoaderManager.LoaderCall
                     getString(R.string.pref_column_landscape_default)));
         }
 
-        mAdaptor = new PosterAdaptor(getActivity());
         mLayoutManager = new GridLayoutManager(getActivity(), numColumns);
+        mAdaptor = new PosterAdaptor(getActivity());
         mRecyclerView.setAdapter(mAdaptor);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
@@ -148,10 +164,6 @@ public class PosterFragment extends Fragment implements LoaderManager.LoaderCall
 
         getLoaderManager().initLoader(POSTER_LOADER, null, this);
 
-        if (savedInstanceState != null) {
-            mLayoutManager.onRestoreInstanceState(savedInstanceState.getParcelable(BUNDLE_LAYOUT_TAG));
-            Log.e(LOG_TAG, "Restored state! " + mSource);
-        }
         super.onActivityCreated(savedInstanceState);
     }
 
@@ -165,7 +177,8 @@ public class PosterFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public void onStart() {
         super.onStart();
-        //loadMovieData();
+        mPref.registerOnSharedPreferenceChangeListener(this);
+        loadMovieData();
     }
 
     /**
@@ -202,8 +215,14 @@ public class PosterFragment extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public void onDestroy() {
-        ButterKnife.unbind(this);
         super.onDestroy();
+        ButterKnife.unbind(this);
+    }
+
+    @Override
+    public void onStop() {
+        mPref.unregisterOnSharedPreferenceChangeListener(this);
+        super.onStop();
     }
 
     @Override
@@ -217,4 +236,11 @@ public class PosterFragment extends Fragment implements LoaderManager.LoaderCall
         mAdaptor.swapCursor(null);
     }
 
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals(getString(R.string.pref_source_key))) {
+            mType = sharedPreferences.getString(key, MovieContract.PATH_MOVIE);
+            getLoaderManager().restartLoader(POSTER_LOADER, null, this);
+        }
+    }
 }

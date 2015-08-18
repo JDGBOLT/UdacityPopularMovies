@@ -33,6 +33,7 @@ public class PosterAdaptor extends RecyclerView.Adapter<PosterAdaptor.ViewHolder
     }
 
     public void swapCursor(Cursor cursor) {
+        if (mCursor != null && cursor == null) mCursor.close();
         mCursor = cursor;
         if (cursor != null) {
             mColumnPosterPath = mCursor.getColumnIndex(MovieContract.MovieEntry.POSTER_PATH.COLUMN);
@@ -65,6 +66,7 @@ public class PosterAdaptor extends RecyclerView.Adapter<PosterAdaptor.ViewHolder
         holder.mImageView.setDefaultImageResId(R.drawable.noposter);
         holder.mImageView.setErrorImageResId(R.drawable.noposter);
         holder.mTextView.setText(mCursor.getString(mColumnTitle));
+
     }
 
     @Override
