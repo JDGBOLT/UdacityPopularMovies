@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -18,7 +17,6 @@ import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,10 +54,8 @@ public class PosterFragment extends Fragment implements
 
     private static final String LOG_TAG = PosterFragment.class.getSimpleName();
 
-    private static final String BUNDLE_LAYOUT_TAG = "layout";
     private static final String BUNDLE_SOURCE_TAG = "source";
     private static final String BUNDLE_TYPE_TAG = "type";
-    private static final String BUNDLE_LAYOUT_POSITION_TAG = "position";
     @Bind(R.id.main_swipe_refresh)
     SwipeRefreshLayout mSwipeRefresh;
     @Bind(R.id.recyclerview_moviepost)
@@ -67,9 +63,6 @@ public class PosterFragment extends Fragment implements
     private String mSource, mType;
     private SharedPreferences mPref;
     private PosterAdaptor mAdaptor;
-    private GridLayoutManager mLayoutManager;
-    private Parcelable layoutManagerState;
-    private int mScrollPosition;
 
     public static PosterFragment newInstance(String source, String type) {
 
@@ -80,13 +73,6 @@ public class PosterFragment extends Fragment implements
         args.putString(BUNDLE_TYPE_TAG, type);
         fragment.setArguments(args);
         return fragment;
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        Log.e(LOG_TAG, "Saved State! " + mSource);
-        outState.putParcelable(BUNDLE_LAYOUT_TAG, mLayoutManager.onSaveInstanceState());
-        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -106,17 +92,6 @@ public class PosterFragment extends Fragment implements
 
         setupRecycler();
         setupSwipeToRefresh();
-
-        if (savedInstanceState != null) {
-            layoutManagerState = savedInstanceState.getParcelable(BUNDLE_LAYOUT_TAG);
-
-            mRecyclerView.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mLayoutManager.onRestoreInstanceState(layoutManagerState);
-                }
-            }, 250);
-        }
 
         return rootView;
     }
@@ -151,7 +126,7 @@ public class PosterFragment extends Fragment implements
                     getString(R.string.pref_column_landscape_default)));
         }
 
-        mLayoutManager = new GridLayoutManager(getActivity(), numColumns);
+        GridLayoutManager mLayoutManager = new GridLayoutManager(getActivity(), numColumns);
         mAdaptor = new PosterAdaptor(getActivity());
         mRecyclerView.setAdapter(mAdaptor);
         mRecyclerView.setLayoutManager(mLayoutManager);

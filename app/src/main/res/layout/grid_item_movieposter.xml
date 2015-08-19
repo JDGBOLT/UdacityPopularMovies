@@ -16,7 +16,8 @@
                 android:id="@+id/grid_item_moviepost_imageview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:adjustViewBounds="true" />
+                android:adjustViewBounds="true"
+                android:src="@drawable/noposter" />
 
             <TextView
                 android:id="@+id/grid_item_moviepost_textview"
