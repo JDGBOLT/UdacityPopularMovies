@@ -34,4 +34,5 @@
     <string name="nav_media_movie">Movies</string>
     <string name="nav_media_tv">TV Shows</string>
     <string name="nav_media">Media</string>
+    <string name="share_text">Share</string>
 </resources>
