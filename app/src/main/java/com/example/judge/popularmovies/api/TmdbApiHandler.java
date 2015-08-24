@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2015 Joshua Gwinn (jdgbolt@gmail.com)
+ */
+
 package com.example.judge.popularmovies.api;
 
 import android.content.ContentValues;
@@ -24,8 +28,22 @@ import org.json.JSONObject;
 
 import java.util.Date;
 
+/**
+ * This is the class that is responsible for all syncing to the database from TheMovieDB, this is
+ * what interacts with the database the most in order to insert and update the data when called to sync.
+ * It does require a class not within the repository, TmdbApiKey with a simple KEY constant for the
+ * TheMovieDB key. The functionality is somewhat complex, it basically has a number of sync modes that
+ * are passed in to the single sync method. This then sets up various parameters needed for the syncing
+ * process, it then calls volley to perform the json download and parsing, and in the callback it
+ * uses the set parameters such as column data and database/content provider names in order to correctly
+ * sync the database. It first performs the download, then once it has the JSONObject it pulls the results
+ * array outside of it. It then uses this array in order to populate an array of ContentValues. Once all
+ * of the values are setup correctly it will then do removal of the required rows in the database and a bulk
+ * insert of the content values.
+ */
 public class TmdbApiHandler {
 
+    // The various sync modes that are supported by the syncer
     public static final int SYNC_MOVIE = 0;
     public static final int SYNC_MOVIE_REVIEW = 1;
     public static final int SYNC_MOVIE_TRAILER = 2;
@@ -35,35 +53,68 @@ public class TmdbApiHandler {
     public static final int SYNC_TV_TRAILER = 6;
     public static final int SYNC_TV_DETAIL = 7;
     public static final int SYNC_TV_SEARCH = 8;
+
+    // The base uri and paths required for the various calls
     private static final Uri API_BASE_URI = Uri.parse("http://api.themoviedb.org/3");
     private static final String MOVIE_PATH = "movie";
     private static final String TV_PATH = "tv";
+    private static final String REVIEW_PATH = "reviews";
+    private static final String TRAILER_PATH = "videos";
+
+    // These paths are mostly related to the type of source being pulled from, such as most popular
     private static final String AIRING_TODAY_PATH = "airing_today";
     private static final String ON_THE_AIR_PATH = "on_the_air";
     private static final String NOW_PLAYING_PATH = "now_playing";
     private static final String POPULAR_PATH = "popular";
     private static final String RATING_PATH = "top_rated";
     private static final String UPCOMING_PATH = "upcoming";
-    private static final String REVIEW_PATH = "reviews";
     private static final String SEARCH_PATH = "search";
-    private static final String TRAILER_PATH = "videos";
+
+    // These are the various key parameters and other parameters needed for the syncing.
     private static final String API_KEY_PARAM = "api_key";
     private static final String API_QUERY_PARAM = "query";
     private static final String API_RESULT_ARRAY_KEY = "results";
     private static final String LOG_TAG = TmdbApiHandler.class.getSimpleName();
 
+    /**
+     * This is the most often used sync function, and doesn't force the syncing of the data
+     * @param syncType The type of syncing to perform
+     * @param source The source to sync, such as most popular
+     * @param context The context for the application
+     */
     public static void sync(final @SyncType int syncType, final String source, final Context context) {
         sync(syncType, source, context, false);
     }
 
+    /**
+     * This is the sync function including forcing functionality, as stated above it can force whether
+     * a sync should take place ignoring the minimum amount of time between syncs. Takes in a sync type,
+     * context, source, and whether to force the syncing.
+     * @param syncType The type of syncing to perform
+     * @param source The source to sync, such as most popular
+     * @param context The context for the application
+     * @param force Whether to force syncing even if the minimum time between syncs hasn't elapsed
+     */
     public static void sync(final @SyncType int syncType, final String source, final Context context, final boolean force) {
 
+        // The various parameters required for the sync process, final in order to be accessible within the callback
+
+        // This parameter is the database columns required, which also include the api key to pull from
         final MovieContract.DatabaseColumn[] apiColumns, nonApiColumns;
+
+        // Whether to update the rows in the database rather than drop them completely, used for updating the media details
         final boolean update;
+
+        // The non api key values to insert into the database
         final String[] key;
+
+        // The media type and selection, mostly used for the update functionality and what to put into the logging
         final String type, selection;
+
+        // The URI's used, uri is the TheMovieDB url to sync against, and contentUri is which Content Provider uri to access.
         final Uri uri, contentUri;
 
+        // Massive switch statement which for each sync type sets the parameters
         switch (syncType) {
             case SYNC_MOVIE: {
 
@@ -95,8 +146,10 @@ public class TmdbApiHandler {
                                 .appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
                         break;
                     }
-                    default:
-                        throw new UnsupportedOperationException("Source not known: " + source);
+                    default: {
+                        Log.e(LOG_TAG, "Unknown source: " + source);
+                        return;
+                    }
                 }
 
                 key = new String[]{source};
@@ -145,11 +198,11 @@ public class TmdbApiHandler {
                         .appendPath(source).appendPath(TRAILER_PATH)
                         .appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
 
-                key = new String[]{source};
+                key = new String[]{source, MovieContract.PATH_MOVIE};
                 contentUri = TrailerEntry.CONTENT_URI;
                 apiColumns = TrailerEntry.API_COLUMNS;
                 nonApiColumns = TrailerEntry.NONAPI_COLUMNS;
-                type = MovieContract.PATH_TRAILER;
+                type = MovieContract.PATH_MOVIE + "_" + MovieContract.PATH_TRAILER;
                 selection = TrailerEntry.selectId();
                 update = false;
                 break;
@@ -199,8 +252,10 @@ public class TmdbApiHandler {
                     case TVEntry.SOURCE_SEARCH: {
                         return;
                     }
-                    default:
-                        throw new UnsupportedOperationException("Source not known: " + source);
+                    default: {
+                        Log.e(LOG_TAG, "Unknown source: " + source);
+                        return;
+                    }
                 }
 
                 key = new String[]{source};
@@ -233,11 +288,11 @@ public class TmdbApiHandler {
                         .appendPath(source).appendPath(TRAILER_PATH)
                         .appendQueryParameter(API_KEY_PARAM, TmdbApiKey.KEY).build();
 
-                key = new String[]{source};
+                key = new String[]{source, MovieContract.PATH_TV};
                 contentUri = TrailerEntry.CONTENT_URI;
                 apiColumns = TrailerEntry.API_COLUMNS;
                 nonApiColumns = TrailerEntry.NONAPI_COLUMNS;
-                type = MovieContract.PATH_TRAILER;
+                type = MovieContract.PATH_TV + "_" + MovieContract.PATH_TRAILER;
                 selection = TrailerEntry.selectId();
                 update = false;
                 break;
@@ -261,6 +316,10 @@ public class TmdbApiHandler {
                 throw new UnsupportedOperationException("Sync type not supported!");
         }
 
+        /**
+         * This section uses a shared preference file in order to store the last sync time, and checks it against a minimum
+         * time set in the settings panel.
+         */
         final SharedPreferences pref = context.getSharedPreferences(context.getPackageName() + "_updates", Context.MODE_PRIVATE);
         final String updateKey = String.format("%s_%s_updated", type, source);
         final long updateInterval = 60000 * Long.parseLong(PreferenceManager.getDefaultSharedPreferences(context)
@@ -268,30 +327,39 @@ public class TmdbApiHandler {
         final long updateTime = pref.getLong(updateKey, 0);
         final long currentTime = (new Date()).getTime();
 
+        // Check if we are past the minimum sync time or we are force updating
         if ((currentTime - updateTime) > updateInterval || force) {
 
+            // Creates the JSON request object to pass to volley.
             JsonObjectRequest request = new JsonObjectRequest(uri.toString(), new Response.Listener<JSONObject>() {
 
                 @Override
                 public void onResponse(JSONObject response) {
                     try {
+                        // After we get the response try to get the results array, inserting the data in a new one if not present
                         JSONArray data = (response.has(API_RESULT_ARRAY_KEY)) ?
                                 response.getJSONArray(API_RESULT_ARRAY_KEY) : new JSONArray().put(response);
 
+                        // Check the length of the data received, and only do an update if there is actually data to use
                         int dataLength = data.length();
                         int inserted;
                         if (dataLength > 0) {
                             ContentValues[] values = new ContentValues[dataLength];
 
+                            // For loop that goes through each element in the data array
                             for (int i = 0; i < dataLength; i++) {
                                 JSONObject object = data.getJSONObject(i);
                                 values[i] = new ContentValues(apiColumns.length + nonApiColumns.length);
+
+                                // Add our non api columns with their values
                                 if (!update) {
                                     for (int j = 0; j < nonApiColumns.length; j++) {
                                         values[i].put(nonApiColumns[j].COLUMN, key[j]);
                                     }
                                 }
 
+                                // Go through each of the api columns and pull the data from the response into a content value column
+                                // We have it getting optional values in order to ensure that there are no nulls in the database
                                 for (MovieContract.DatabaseColumn apiColumn : apiColumns) {
                                     switch (apiColumn.TYPE) {
                                         case "integer": {
@@ -310,6 +378,7 @@ public class TmdbApiHandler {
                                 }
                             }
 
+                            // If we have to update, update the rows, otherwise we delete the required rows and do a bulk insert
                             if (update) {
                                 inserted = 0;
                                 for (ContentValues value : values) {
@@ -319,7 +388,10 @@ public class TmdbApiHandler {
                                 context.getContentResolver().delete(contentUri, selection, key);
                                 inserted = context.getContentResolver().bulkInsert(contentUri, values);
                             }
+                            // Simple message to print out how much the database was altered.
                             Log.e(LOG_TAG, String.format("Inserted %d %s's into the %s ContentProvider", inserted, type, contentUri));
+
+                            // Update the last sync time in the shared preferences
                             pref.edit().putLong(updateKey, (new Date()).getTime()).apply();
                         }
 
@@ -338,6 +410,7 @@ public class TmdbApiHandler {
         }
     }
 
+    // Simple Definition for all of the synctypes, for static checking of the sync type
     @IntDef({
             SYNC_MOVIE,
             SYNC_MOVIE_REVIEW,

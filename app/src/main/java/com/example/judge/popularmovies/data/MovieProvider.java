@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2015 Joshua Gwinn (jdgbolt@gmail.com)
+ */
+
 package com.example.judge.popularmovies.data;
 
 import android.content.ContentProvider;
@@ -8,8 +12,17 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 
+/**
+ * This is the content provider that is used within the application, it's a fairly bog standard content
+ * provider created in the same vein as the one that was used in sunshine. It's a little different in that
+ * it mostly functions to directly give access to the database tables rather than any special functionality.
+ * If this was used externally then it might have more complicated functionality, but since it is internal
+ * only it's the minimum complexity required for the functionality it needs.
+ */
+
 public class MovieProvider extends ContentProvider {
 
+    // Content Provider content types
     private static final int MOVIE = 100;
     private static final int REVIEW = 101;
     private static final int TRAILER = 102;
@@ -19,6 +32,7 @@ public class MovieProvider extends ContentProvider {
 
     private MovieDbHelper mOpenHelper;
 
+    // Method to create the URI matcher required for the provider, there are only 4 types directly accessing the tables.
     private static UriMatcher buildUriMatcher() {
         UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         final String authority = MovieContract.CONTENT_AUTHORITY;
@@ -31,6 +45,7 @@ public class MovieProvider extends ContentProvider {
         return matcher;
     }
 
+    // Method to match a uri to a content type
     @Override
     public String getType(Uri uri) {
         final int match = sUriMatcher.match(uri);
@@ -54,6 +69,7 @@ public class MovieProvider extends ContentProvider {
         return true;
     }
 
+    // Method for querying the database, which is fairly simple as it just exposes the raw database information.
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         Cursor retCursor;
@@ -95,6 +111,7 @@ public class MovieProvider extends ContentProvider {
     }
 
 
+    // Method for inserting rows into the database, again simple as operates directly on the tables
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
@@ -143,6 +160,7 @@ public class MovieProvider extends ContentProvider {
         return returnUri;
     }
 
+    // Functionality to delete rows from the database
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
@@ -174,6 +192,7 @@ public class MovieProvider extends ContentProvider {
         return rowsDeleted;
     }
 
+    // Method to update rows in the database.
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
@@ -205,6 +224,7 @@ public class MovieProvider extends ContentProvider {
         return rowsUpdated;
     }
 
+    // Method to bulk insert into the database, this is used quite a bit in the syncing.
     @Override
     public int bulkInsert(Uri uri, @NonNull ContentValues[] values) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();

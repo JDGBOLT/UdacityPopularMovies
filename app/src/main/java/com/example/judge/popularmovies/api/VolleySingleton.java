@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2015 Joshua Gwinn (jdgbolt@gmail.com)
+ */
+
 package com.example.judge.popularmovies.api;
 
 import android.content.Context;
