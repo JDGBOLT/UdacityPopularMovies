@@ -26,14 +26,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".act.MainActivity" />
         </activity>
-        <activity
-            android:name=".act.MovieActivity"
-            android:label="@string/title_activity_movie"
-            android:parentActivityName=".act.MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".act.MainActivity" />
-        </activity>
 
         <provider
             android:name=".data.MovieProvider"
