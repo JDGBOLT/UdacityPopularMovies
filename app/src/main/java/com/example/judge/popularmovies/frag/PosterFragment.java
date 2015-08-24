@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.judge.popularmovies.R;
+import com.example.judge.popularmovies.act.MainActivity;
 import com.example.judge.popularmovies.adap.PosterAdaptor;
 import com.example.judge.popularmovies.api.TmdbApiHandler;
 import com.example.judge.popularmovies.data.MovieContract;
@@ -33,7 +34,7 @@ import butterknife.ButterKnife;
 
 
 /**
- * Main fragment of the Popular Movies app, provides a grid view of movie poster thumbnails that can
+ * Poster fragment of the Popular Movies app, provides a grid view of movie poster thumbnails that can
  * then be touched on in order to provide more detailed movie information in a separate view.
  */
 
@@ -41,29 +42,37 @@ public class PosterFragment extends Fragment implements
         LoaderManager.LoaderCallbacks<Cursor>,
         SharedPreferences.OnSharedPreferenceChangeListener {
 
+    public static final int COLUMN_MEDIA_ID = 0;
+    public static final int COLUMN_TITLE = 1;
+    public static final int COLUMN_POSTER_PATH = 2;
     // Movie Loader
     private static final int POSTER_LOADER = 0;
+    // Column information required for the loader
     private static final String[] POSTER_COLUMNS = {
             MovieEntry.MEDIA_ID.COLUMN,
-            MovieEntry.ORIGINAL_TITLE.COLUMN,
+            MovieEntry.TITLE.COLUMN,
             MovieEntry.POSTER_PATH.COLUMN,
     };
-    private static final int COLUMN_MEDIA_ID = 0;
-    private static final int COLUMN_ORIGINAL_TITLE = 1;
-    private static final int COLUMN_POSTER_PATH = 2;
-
     private static final String LOG_TAG = PosterFragment.class.getSimpleName();
 
+    // Tags used for the arguments
     private static final String BUNDLE_SOURCE_TAG = "source";
     private static final String BUNDLE_TYPE_TAG = "type";
+
+    // Global view data populated by ButterKnife
     @Bind(R.id.main_swipe_refresh)
     SwipeRefreshLayout mSwipeRefresh;
     @Bind(R.id.recyclerview_moviepost)
     RecyclerView mRecyclerView;
+
+    // Variabled for storing the source and media type
     private String mSource, mType;
     private SharedPreferences mPref;
+
+    // Adaptor for the recyclerview
     private PosterAdaptor mAdaptor;
 
+    // This is required by the ViewPager in order to create the instance with the correct information
     public static PosterFragment newInstance(String source, String type) {
 
         Bundle args = new Bundle();
@@ -85,6 +94,7 @@ public class PosterFragment extends Fragment implements
 
         ButterKnife.bind(this, rootView);
 
+        // Read the arguments that were written in from the pager
         if (getArguments() != null) {
             mSource = getArguments().getString(BUNDLE_SOURCE_TAG);
             mType = getArguments().getString(BUNDLE_TYPE_TAG);
@@ -96,6 +106,7 @@ public class PosterFragment extends Fragment implements
         return rootView;
     }
 
+    // Method to setup the swipe to refresh functionality, including syncing the right data
     private void setupSwipeToRefresh() {
         mSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -110,10 +121,12 @@ public class PosterFragment extends Fragment implements
                         break;
                     }
                 }
+                mSwipeRefresh.setRefreshing(false);
             }
         });
     }
 
+    // Method to setup the recycler, including reading the column preferences and using them when creating the Grid layout
     private void setupRecycler() {
 
         int numColumns = Integer.parseInt(mPref.getString(
@@ -127,13 +140,14 @@ public class PosterFragment extends Fragment implements
         }
 
         GridLayoutManager mLayoutManager = new GridLayoutManager(getActivity(), numColumns);
-        mAdaptor = new PosterAdaptor(getActivity());
+        mAdaptor = new PosterAdaptor((MainActivity) getActivity());
         mRecyclerView.setAdapter(mAdaptor);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
     }
 
 
+    // Initialize the loader
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
 
@@ -142,13 +156,8 @@ public class PosterFragment extends Fragment implements
         super.onActivityCreated(savedInstanceState);
     }
 
-    /**
-     * Within onStart, we override it to provide the custom BasicAdaptor for the gridview, we also
-     * register the callback function in order to launch the movie detail activity in order to show
-     * more detailed movie data. We provide the movie data needed for the movie detail view as extra
-     * tags sent along with the intent.
-     */
 
+    // Setup the fragment to listen for preference changes in order for source changes to work
     @Override
     public void onStart() {
         super.onStart();
@@ -157,9 +166,9 @@ public class PosterFragment extends Fragment implements
     }
 
     /**
-     * This function actually has volley pull the data from theMovieDB, has it, once it retrieves the json
-     * data, to parse it into a JSONObject, we then pull the array of movie listings out of that object
-     * and use it to populate the arraylist of Movie objects.
+     * This function starts the handler to load the movie data from TheMovieDB using volley, we do have it
+     * start every single time the fragment starts, but there is functionality in the syncer to do timestamps
+     * on last sync, and only sync if the configured period of time has elapsed.
      */
 
     private void loadMovieData() {
@@ -170,6 +179,7 @@ public class PosterFragment extends Fragment implements
         }
     }
 
+    // Create the loaders, we need different ones depending on if we are using a Movie or TV media source
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         switch (mType) {
@@ -188,34 +198,43 @@ public class PosterFragment extends Fragment implements
         }
     }
 
+    // ButterKnife recommends to do this in fragments
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onDestroyView() {
         ButterKnife.unbind(this);
+        super.onDestroyView();
     }
 
+    // Unregister our preference listener
     @Override
     public void onStop() {
         mPref.unregisterOnSharedPreferenceChangeListener(this);
         super.onStop();
     }
 
+    // Swap cursor data into the recycler after load
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        mAdaptor.swapCursor(data);
-        mSwipeRefresh.setRefreshing(false);
+        mAdaptor.swapCursor(data, mType);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        mAdaptor.swapCursor(null);
+        mAdaptor.swapCursor(null, null);
     }
 
+    // Listen for preference changes so we can correctly set the source after it being changed in the nav pane.
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+
         if (key.equals(getString(R.string.pref_source_key))) {
-            mType = sharedPreferences.getString(key, MovieContract.PATH_MOVIE);
-            getLoaderManager().restartLoader(POSTER_LOADER, null, this);
+            String newType = sharedPreferences.getString(key, MovieContract.PATH_MOVIE);
+
+            if (!newType.equals(mType)) {
+                mType = newType;
+                loadMovieData();
+                getLoaderManager().restartLoader(POSTER_LOADER, null, this);
+            }
         }
     }
 }
